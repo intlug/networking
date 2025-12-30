@@ -1,0 +1,24 @@
+{
+  "name": "intlug-networking-presentation",
+  "version": "1.0.0",
+  "description": "INTLUG Linux Networking Presentation using Marp",
+  "scripts": {
+    "build": "marp slides.md -o slides.html",
+    "build:pdf": "marp slides.md -o slides.pdf --allow-local-files",
+    "build:pptx": "marp slides.md -o slides.pptx",
+    "watch": "marp -w slides.md -o slides.html",
+    "serve": "marp -s slides.md"
+  },
+  "keywords": [
+    "linux",
+    "networking",
+    "fedora",
+    "presentation",
+    "marp"
+  ],
+  "author": "INTLUG",
+  "license": "MIT",
+  "devDependencies": {
+    "@marp-team/marp-cli": "^4.2.3"
+  }
+}

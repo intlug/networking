@@ -1,0 +1,8 @@
+node_modules/
+*.html
+*.pdf
+*.pptx
+.DS_Store
+*.swp
+*~
+.github/copilot-instructions.md
