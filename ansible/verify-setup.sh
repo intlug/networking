@@ -1,11 +1,18 @@
 #!/bin/bash
 # Test script to verify lab environment is properly configured
+# Usage: ./verify-setup.sh [network_prefix]
+# Example: ./verify-setup.sh 192.168.132
+# Default: 192.168.122
 
 set -e
+
+# Network prefix - use parameter or default to 192.168.122
+PUBLIC_PREFIX="${1:-192.168.122}"
 
 echo "======================================"
 echo "INTLUG Networking Lab - Verification"
 echo "======================================"
+echo "Using network prefix: ${PUBLIC_PREFIX}.0/24"
 echo ""
 
 # Colors
@@ -129,7 +136,8 @@ if [ "$all_running" = true ] && [ -f ~/.ssh/id_fedora ]; then
     echo "4. Testing SSH connectivity..."
     echo ""
     
-    HOSTS=("192.168.122.151" "192.168.122.152" "192.168.122.153")
+    # Use network prefix (set at script start or passed as parameter)
+    HOSTS=("${PUBLIC_PREFIX}.151" "${PUBLIC_PREFIX}.152" "${PUBLIC_PREFIX}.153")
     NAMES=("labhost1" "labhost2" "labhost3")
     
     for i in "${!HOSTS[@]}"; do

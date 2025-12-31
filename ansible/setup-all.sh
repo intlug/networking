@@ -1,7 +1,13 @@
 #!/bin/bash
 # Complete lab setup script - runs all three playbooks in sequence
+# Usage: ./setup-all.sh [network_prefix]
+# Example: ./setup-all.sh 192.168.132
+# Default: 192.168.122
 
 set -e
+
+# Network prefix - use parameter or default to 192.168.122
+PUBLIC_PREFIX="${1:-192.168.122}"
 
 # Colors
 GREEN='\033[0;32m'
@@ -54,7 +60,7 @@ echo ""
 # Step 1: Bootstrap
 info "Step 1/3: Bootstrapping VMs (this may take 5-10 minutes)..."
 echo ""
-if ansible-playbook bootstrap-lab.yml; then
+if ansible-playbook -e "public_network_prefix=${PUBLIC_PREFIX}" bootstrap-lab.yml; then
     success "Bootstrap completed successfully"
     echo ""
 else
@@ -69,7 +75,7 @@ sleep 5
 # Step 2: Provision
 info "Step 2/3: Adding isolated network interfaces..."
 echo ""
-if ansible-playbook provision-vms.yml; then
+if ansible-playbook -e "public_network_prefix=${PUBLIC_PREFIX}" provision-vms.yml; then
     success "Provisioning completed successfully"
     echo ""
 else
@@ -85,7 +91,7 @@ sleep 10
 # Step 3: Configure
 info "Step 3/3: Configuring services and networking..."
 echo ""
-if ansible-playbook site.yml; then
+if ansible-playbook -e "public_network_prefix=${PUBLIC_PREFIX}" site.yml; then
     success "Configuration completed successfully"
     echo ""
 else
@@ -101,18 +107,20 @@ echo "=============================================="
 echo ""
 echo "Your lab environment is ready!"
 echo ""
+echo "Network: ${PUBLIC_PREFIX}.0/24"
+echo ""
 echo "VM Details:"
-echo "  • labhost1.local (192.168.122.151)"
+echo "  • labhost1.local (${PUBLIC_PREFIX}.151)"
 echo "    - Gateway/Router"
 echo "    - DNS/DHCP server (dnsmasq)"
 echo "    - Web server (nginx)"
 echo "    - Dual-homed (public + isolated)"
 echo ""
-echo "  • labhost2.local (192.168.122.152)"
+echo "  • labhost2.local (${PUBLIC_PREFIX}.152)"
 echo "    - Client on isolated network only"
 echo "    - Tests routing through labhost1"
 echo ""
-echo "  • labhost3.local (192.168.122.153)"
+echo "  • labhost3.local (${PUBLIC_PREFIX}.153)"
 echo "    - Client on isolated network only"
 echo "    - GUI available (GNOME)"
 echo "    - Tests routing through labhost1"
