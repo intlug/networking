@@ -20,17 +20,17 @@
 - name: Enable and start cockpit service
   ansible.builtin.systemd:
     name: cockpit.socket
-    enabled: yes
+    enabled: true
     state: started
 
 - name: Enable and start pmcd (PCP daemon)
   ansible.builtin.systemd:
     name: pmcd
-    enabled: yes
+    enabled: true
     state: started
 
 - name: Enable and start pmlogger
   ansible.builtin.systemd:
     name: pmlogger
-    enabled: yes
+    enabled: true
     state: started

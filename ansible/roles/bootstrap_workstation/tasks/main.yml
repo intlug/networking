@@ -1,0 +1,31 @@
+---
+# Workstation bootstrap tasks - prepares the local system
+- name: Check if running as root
+  ansible.builtin.fail:
+    msg: "This playbook should NOT be run as root. Run as your regular user who is in the libvirt group."
+  when: ansible_user_id == 'root'
+
+- name: Ensure user is in libvirt group
+  ansible.builtin.command: groups
+  register: bootstrap_workstation_user_groups
+  changed_when: false
+  failed_when: "'libvirt' not in bootstrap_workstation_user_groups.stdout"
+
+- name: Check if SSH key exists
+  ansible.builtin.stat:
+    path: "{{ bootstrap_workstation_ssh_key_path }}"
+  register: bootstrap_workstation_ssh_key_stat
+
+- name: Generate SSH key if it doesn't exist
+  ansible.builtin.command: ssh-keygen -t rsa -b 4096 -f {{ bootstrap_workstation_ssh_key_path }} -N '' -C "ansible@labhost"
+  when: not bootstrap_workstation_ssh_key_stat.stat.exists
+  changed_when: true
+
+- name: Read SSH public key
+  ansible.builtin.slurp:
+    src: "{{ bootstrap_workstation_ssh_pub_key_path }}"
+  register: bootstrap_workstation_ssh_public_key
+
+- name: Store SSH public key for other roles
+  ansible.builtin.set_fact:
+    bootstrap_workstation_ssh_public_key_content: "{{ bootstrap_workstation_ssh_public_key['content'] | b64decode | trim }}"

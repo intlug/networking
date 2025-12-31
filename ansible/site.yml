@@ -5,23 +5,23 @@
 - name: Initial setup - Install base packages and tools
   hosts: demoservers
   roles:
-    - base-packages
+    - base_packages
     - monitoring
-    - network-tools
+    - network_tools
 
 - name: Configure networking on all hosts
   hosts: demoservers
   roles:
-    - network-config
+    - network_config
 
 - name: Configure gateway host (labhost1)
   hosts: gateway
   roles:
     - dnsmasq
     - nginx
-    - nat-gateway
+    - nat_gateway
 
 - name: Configure GUI host (labhost3)
   hosts: guihost
   roles:
-    - gui-setup
+    - gui_setup

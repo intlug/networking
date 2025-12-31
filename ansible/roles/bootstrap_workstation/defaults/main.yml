@@ -1,0 +1,4 @@
+---
+# Default variables for bootstrap_workstation role
+bootstrap_workstation_ssh_key_path: "{{ ansible_env.HOME }}/.ssh/id_fedora"
+bootstrap_workstation_ssh_pub_key_path: "{{ ansible_env.HOME }}/.ssh/id_fedora.pub"

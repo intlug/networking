@@ -6,4 +6,4 @@
   ansible.builtin.include_tasks: add_interface.yml
   loop: "{{ vm_list }}"
   loop_control:
-    loop_var: vm_name
+    loop_var: libvirt_vm_name

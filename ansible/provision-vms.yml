@@ -6,7 +6,7 @@
 - name: Add isolated network interfaces to VMs via libvirt
   hosts: localhost
   connection: local
-  gather_facts: no
+  gather_facts: false
   vars:
     vm_list:
       - labhost1

@@ -1,0 +1,109 @@
+---
+# Configure network interfaces on all hosts
+
+- name: Get network interface facts
+  ansible.builtin.setup:
+    gather_subset:
+      - network
+
+- name: Identify public interface (connected to 192.168.122.0/24)
+  ansible.builtin.set_fact:
+    network_config_public_interface: >-
+      {{
+        ansible_interfaces
+        | map('regex_replace', '^(.*)$', 'ansible_\1')
+        | map('extract', hostvars[inventory_hostname])
+        | selectattr('ipv4', 'defined')
+        | selectattr('ipv4.address', 'defined')
+        | selectattr('ipv4.address', 'match', '^192\.168\.122\.')
+        | map(attribute='device')
+        | first
+      }}
+
+- name: Identify isolated interface (second ethernet interface)
+  ansible.builtin.set_fact:
+    network_config_isolated_interface: >-
+      {{
+        ansible_interfaces
+        | difference(['lo', network_config_public_interface])
+        | select('match', '^(en|eth)')
+        | first
+      }}
+
+- name: Display detected interfaces
+  ansible.builtin.debug:
+    msg:
+      - "Public interface: {{ network_config_public_interface }}"
+      - "Isolated interface: {{ network_config_isolated_interface }}"
+
+- name: Configure isolated network interface on labhost1 (static IP)
+  community.general.nmcli:
+    conn_name: "isolated"
+    type: ethernet
+    ifname: "{{ network_config_isolated_interface }}"
+    ip4: "{{ labhost1_isolated_ip }}/24"
+    method4: manual
+    state: present
+  when: inventory_hostname == 'labhost1.local'
+
+- name: Set firewall zone for isolated interface on labhost1
+  ansible.posix.firewalld:
+    zone: "{{ isolated_zone }}"
+    interface: "{{ network_config_isolated_interface }}"
+    permanent: true
+    state: enabled
+  when: inventory_hostname == 'labhost1.local'
+
+- name: Configure isolated network interface on labhost2/3 (DHCP)
+  community.general.nmcli:
+    conn_name: "isolated"
+    type: ethernet
+    ifname: "{{ network_config_isolated_interface }}"
+    method4: auto
+    dns4:
+      - "{{ dns_server }}"
+    dns4_search:
+      - "{{ isolated_domain }}"
+    state: present
+  when: inventory_hostname in ['labhost2.local', 'labhost3.local']
+
+- name: Set firewall zone for isolated interface on labhost2/3
+  ansible.posix.firewalld:
+    zone: "{{ isolated_zone }}"
+    interface: "{{ network_config_isolated_interface }}"
+    permanent: true
+    state: enabled
+  when: inventory_hostname in ['labhost2.local', 'labhost3.local']
+
+- name: Ensure public interface has correct firewall zone on all hosts
+  ansible.posix.firewalld:
+    zone: "{{ public_zone }}"
+    interface: "{{ network_config_public_interface }}"
+    permanent: true
+    state: enabled
+
+- name: Add SSH service to public zone
+  ansible.posix.firewalld:
+    zone: "{{ public_zone }}"
+    service: ssh
+    permanent: true
+    state: enabled
+
+- name: Reload firewalld to apply changes
+  ansible.builtin.systemd:
+    name: firewalld
+    state: reloaded
+
+- name: Bring up isolated interface
+  community.general.nmcli:
+    conn_name: "isolated"
+    state: up
+
+- name: Verify isolated interface is up
+  ansible.builtin.command: "ip addr show {{ network_config_isolated_interface }}"
+  register: network_config_isolated_interface_status
+  changed_when: false
+
+- name: Display isolated interface status
+  ansible.builtin.debug:
+    var: network_config_isolated_interface_status.stdout_lines

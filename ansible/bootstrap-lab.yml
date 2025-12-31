@@ -21,6 +21,6 @@
   become: false
 
   roles:
-    - role: bootstrap-workstation
+    - role: bootstrap_workstation
     - role: libvirt
       tags: bootstrap

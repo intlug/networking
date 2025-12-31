@@ -10,8 +10,9 @@
   ansible.builtin.copy:
     src: /etc/dnsmasq.conf
     dest: /etc/dnsmasq.conf.orig
-    remote_src: yes
-    force: no
+    remote_src: true
+    force: false
+    mode: '0644'
 
 - name: Deploy dnsmasq configuration
   ansible.builtin.template:
@@ -20,7 +21,7 @@
     owner: root
     group: root
     mode: '0644'
-  notify: restart dnsmasq
+  notify: Restart dnsmasq
 
 - name: Create dnsmasq hosts file for isolated network
   ansible.builtin.template:
@@ -29,13 +30,13 @@
     owner: root
     group: root
     mode: '0644'
-  notify: restart dnsmasq
+  notify: Restart dnsmasq
 
 - name: Add DNS and DHCP services to internal firewall zone
   ansible.posix.firewalld:
     zone: "{{ isolated_zone }}"
     service: "{{ item }}"
-    permanent: yes
+    permanent: true
     state: enabled
   loop:
     - dns
@@ -49,5 +50,5 @@
 - name: Enable and start dnsmasq
   ansible.builtin.systemd:
     name: dnsmasq
-    enabled: yes
+    enabled: true
     state: started

@@ -3,6 +3,7 @@
 # Use tags to run specific tasks:
 #   - bootstrap: Create VMs from scratch
 #   - provision: Add network interfaces to existing VMs
+#   - setup-ansible-user: Configure ansible user on existing VMs
 
 - name: Include bootstrap tasks
   ansible.builtin.include_tasks: bootstrap.yml
@@ -13,3 +14,8 @@
   ansible.builtin.include_tasks: provision.yml
   tags:
     - provision
+
+- name: Include ansible user setup tasks
+  ansible.builtin.include_tasks: setup_ansible_user.yml
+  tags:
+    - setup-ansible-user

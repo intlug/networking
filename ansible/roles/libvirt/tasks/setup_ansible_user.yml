@@ -1,0 +1,69 @@
+---
+# Setup ansible user on existing VMs
+# This can be run standalone with: ansible-playbook -i inventory bootstrap-lab.yml --tags setup-ansible-user
+# Used when VMs already exist and weren't provisioned by this bootstrap process
+
+- name: Create ansible user on existing VMs
+  ansible.builtin.user:
+    name: "{{ libvirt_ansible_user }}"
+    groups: wheel
+    append: true
+    shell: /bin/bash
+    create_home: true
+  delegate_to: "{{ item.hostname }}"
+  loop: "{{ libvirt_vms }}"
+  become: true
+  vars:
+    ansible_user: "{{ libvirt_cloud_user }}"
+    ansible_ssh_private_key_file: "{{ libvirt_ssh_key_path }}"
+
+- name: Ensure .ssh directory exists for ansible user
+  ansible.builtin.file:
+    path: "/home/{{ libvirt_ansible_user }}/.ssh"
+    state: directory
+    mode: '0700'
+    owner: "{{ libvirt_ansible_user }}"
+    group: "{{ libvirt_ansible_user }}"
+  delegate_to: "{{ item.hostname }}"
+  loop: "{{ libvirt_vms }}"
+  become: true
+  vars:
+    ansible_user: "{{ libvirt_cloud_user }}"
+    ansible_ssh_private_key_file: "{{ libvirt_ssh_key_path }}"
+
+- name: Add SSH key to ansible user's authorized_keys
+  ansible.posix.authorized_key:
+    user: "{{ libvirt_ansible_user }}"
+    state: present
+    key: "{{ bootstrap_workstation_ssh_public_key_content }}"
+    manage_dir: false
+  delegate_to: "{{ item.hostname }}"
+  loop: "{{ libvirt_vms }}"
+  become: true
+  vars:
+    ansible_user: "{{ libvirt_cloud_user }}"
+    ansible_ssh_private_key_file: "{{ libvirt_ssh_key_path }}"
+
+- name: Configure passwordless sudo for ansible user
+  ansible.builtin.lineinfile:
+    path: "/etc/sudoers.d/{{ libvirt_ansible_user }}"
+    line: "{{ libvirt_ansible_user }} ALL=(ALL) NOPASSWD:ALL"
+    create: true
+    mode: '0440'
+    validate: 'visudo -cf %s'
+  delegate_to: "{{ item.hostname }}"
+  loop: "{{ libvirt_vms }}"
+  become: true
+  vars:
+    ansible_user: "{{ libvirt_cloud_user }}"
+    ansible_ssh_private_key_file: "{{ libvirt_ssh_key_path }}"
+
+- name: Verify ansible user SSH access
+  ansible.builtin.command: echo "Ansible user setup successful"
+  delegate_to: "{{ item.hostname }}"
+  loop: "{{ libvirt_vms }}"
+  become: true
+  vars:
+    ansible_user: "{{ libvirt_ansible_user }}"
+    ansible_ssh_private_key_file: "{{ libvirt_ssh_key_path }}"
+  changed_when: false

@@ -21,12 +21,12 @@
     src: /usr/lib/systemd/system/graphical.target
     dest: /etc/systemd/system/default.target
     state: link
-    force: yes
+    force: true
 
 - name: Enable GDM (GNOME Display Manager)
   ansible.builtin.systemd:
     name: gdm
-    enabled: yes
+    enabled: true
 
 - name: Create desktop configuration directory for ansible user
   ansible.builtin.file:

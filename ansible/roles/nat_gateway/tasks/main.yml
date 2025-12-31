@@ -7,20 +7,20 @@
     value: '0'
     state: present
     sysctl_file: /etc/sysctl.d/99-ip-forward.conf
-    reload: yes
+    reload: true
 
 - name: Create script to enable NAT for demo
   ansible.builtin.copy:
     content: |
       #!/bin/bash
       # Enable NAT routing for demo
-      
+
       echo "Enabling IP forwarding..."
       sudo sysctl -w net.ipv4.ip_forward=1
-      
+
       echo "Enabling masquerading on public zone..."
       sudo firewall-cmd --zone=public --add-masquerade
-      
+
       echo "NAT is now enabled!"
       echo "To disable: sudo firewall-cmd --zone=public --remove-masquerade && sudo sysctl -w net.ipv4.ip_forward=0"
     dest: /usr/local/bin/enable-nat.sh
@@ -33,13 +33,13 @@
     content: |
       #!/bin/bash
       # Disable NAT routing
-      
+
       echo "Disabling IP forwarding..."
       sudo sysctl -w net.ipv4.ip_forward=0
-      
+
       echo "Disabling masquerading on public zone..."
       sudo firewall-cmd --zone=public --remove-masquerade
-      
+
       echo "NAT is now disabled!"
     dest: /usr/local/bin/disable-nat.sh
     owner: root
@@ -50,21 +50,21 @@
   ansible.posix.firewalld:
     zone: public
     interface: "{{ public_interface }}"
-    permanent: yes
+    permanent: true
     state: enabled
 
 - name: Assign isolated interface to internal zone
   ansible.posix.firewalld:
     zone: internal
     interface: "{{ isolated_interface }}"
-    permanent: yes
+    permanent: true
     state: enabled
 
 - name: Add SSH to both zones
   ansible.posix.firewalld:
     zone: "{{ item }}"
     service: ssh
-    permanent: yes
+    permanent: true
     state: enabled
   loop:
     - public
@@ -74,7 +74,7 @@
   ansible.posix.firewalld:
     zone: internal
     rich_rule: 'rule family="ipv4" forward-port port="80" protocol="tcp" to-addr="0.0.0.0"'
-    permanent: yes
+    permanent: true
     state: enabled
 
 - name: Reload firewalld
@@ -86,44 +86,44 @@
   ansible.builtin.copy:
     content: |
       # NAT Gateway Demo Instructions
-      
+
       ## Current State
       NAT is DISABLED by default to allow for live demonstration.
-      
+
       ## To Enable NAT During Demo
       ```bash
       sudo /usr/local/bin/enable-nat.sh
       ```
-      
+
       Or manually:
       ```bash
       sudo sysctl -w net.ipv4.ip_forward=1
       sudo firewall-cmd --zone=public --add-masquerade
       ```
-      
+
       ## To Disable NAT
       ```bash
       sudo /usr/local/bin/disable-nat.sh
       ```
-      
+
       Or manually:
       ```bash
       sudo firewall-cmd --zone=public --remove-masquerade
       sudo sysctl -w net.ipv4.ip_forward=0
       ```
-      
+
       ## Verify NAT Status
       ```bash
       # Check IP forwarding
       sysctl net.ipv4.ip_forward
-      
+
       # Check masquerading
       sudo firewall-cmd --zone=public --query-masquerade
-      
+
       # View routing table
       ip route show
       ```
-      
+
       ## Test from Internal Hosts
       From labhost2 or labhost3:
       ```bash

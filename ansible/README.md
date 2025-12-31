@@ -27,15 +27,16 @@ ansible/
 │   ├── all.yml        # Variables for all hosts
 │   └── gateway.yml    # Gateway-specific variables
 └── roles/             # Ansible roles
-    ├── libvirt-config/    # Add NICs to VMs
-    ├── base-packages/
+    ├── bootstrap_workstation/  # Workstation prep and SSH keys
+    ├── libvirt/           # VM creation and network management
+    ├── base_packages/
     ├── monitoring/
-    ├── network-tools/
-    ├── network-config/
+    ├── network_tools/
+    ├── network_config/
     ├── dnsmasq/
     ├── nginx/
-    ├── nat-gateway/
-    └── gui-setup/
+    ├── nat_gateway/
+    └── gui_setup/
 ```
 
 ## Prerequisites

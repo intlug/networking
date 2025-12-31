@@ -22,7 +22,7 @@
     group: root
     mode: '0644'
     validate: 'nginx -t -c %s'
-  notify: restart nginx
+  notify: Restart nginx
 
 - name: Create proxy configuration directory
   ansible.builtin.file:
@@ -40,13 +40,13 @@
     group: root
     mode: '0644'
     validate: 'nginx -t'
-  notify: restart nginx
+  notify: Restart nginx
 
 - name: Add HTTP and proxy services to firewall zones
   ansible.posix.firewalld:
     zone: "{{ item.zone }}"
     service: "{{ item.service }}"
-    permanent: yes
+    permanent: true
     state: enabled
   loop:
     - { zone: "{{ public_zone }}", service: 'http' }
@@ -61,12 +61,12 @@
 - name: Enable and start nginx
   ansible.builtin.systemd:
     name: nginx
-    enabled: yes
+    enabled: true
     state: started
 
 - name: Set SELinux boolean for nginx network connect
   ansible.posix.seboolean:
     name: httpd_can_network_connect
-    state: yes
-    persistent: yes
+    state: true
+    persistent: true
   when: ansible_selinux.status == "enabled"
