@@ -24,18 +24,18 @@
     - name: Set isolated interface status
       ansible.builtin.set_fact:
         libvirt_has_isolated_nic: "{{ libvirt_iso_interface_check.count > 0 }}"
-    
+
     - name: Shutdown VM if running (required to add interface)
       community.libvirt.virt:
         name: "{{ libvirt_vm_name }}"
         state: shutdown
       when: not libvirt_has_isolated_nic
-    
+
     - name: Wait for VM to shut down
       ansible.builtin.pause:
         seconds: 10
       when: not libvirt_has_isolated_nic
-    
+
     - name: Attach isolated network interface to VM
       ansible.builtin.command:
         cmd: >
@@ -47,13 +47,13 @@
       when: not libvirt_has_isolated_nic
       register: libvirt_attach_result
       changed_when: libvirt_attach_result.rc == 0
-    
+
     - name: Start VM after adding interface
       community.libvirt.virt:
         name: "{{ libvirt_vm_name }}"
         state: running
       when: not libvirt_has_isolated_nic
-    
+
     - name: Wait for VM to boot and become accessible via SSH
       ansible.builtin.wait_for:
         host: "{{ libvirt_vm_name }}.local"
@@ -61,7 +61,7 @@
         delay: 5
         timeout: 120
       when: not libvirt_has_isolated_nic
-    
+
     - name: Display interface addition status
       ansible.builtin.debug:
         msg: >
