@@ -48,7 +48,7 @@
         xpath: /network/forward
         count: true
       register: libvirt_iso_network_forward_check
-          when: libvirt_iso_network in libvirt_existing_networks.list_nets
+      when: libvirt_iso_network in libvirt_existing_networks.list_nets
     
     - name: Warn if iso network has incorrect configuration
       ansible.builtin.debug:
