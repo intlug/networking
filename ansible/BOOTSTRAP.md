@@ -23,14 +23,16 @@ The `bootstrap-lab.yml` playbook performs the following tasks:
 
 ```bash
 # Fedora/RHEL/CentOS
-sudo dnf install -y ansible libvirt qemu-kvm virt-install genisoimage
+sudo dnf install -y ansible libvirt qemu-kvm virt-install genisoimage guestfs-tools
 
 # Ubuntu/Debian
-sudo apt install -y ansible libvirt-daemon-system qemu-kvm virtinst genisoimage
+sudo apt install -y ansible libvirt-daemon-system qemu-kvm virtinst genisoimage libguestfs-tools
 
 # Arch
-sudo pacman -S ansible libvirt qemu-full virt-install cdrtools
+sudo pacman -S ansible libvirt qemu-full virt-install cdrtools libguestfs
 ```
+
+**Note:** `guestfs-tools` (or `libguestfs-tools`) provides `virt-cat`, `virt-ls`, and `guestfish` utilities for VM debugging.
 
 ### Required Ansible Collections
 

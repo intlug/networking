@@ -259,7 +259,9 @@
       ansible.builtin.command: >
         genisoimage -output {{ libvirt_image_dir }}/{{ item.name }}-cidata.iso
         -volid cidata -joliet -rock
-        /tmp/{{ item.name }}-user-data /tmp/{{ item.name }}-meta-data
+        -graft-points
+        user-data=/tmp/{{ item.name }}-user-data
+        meta-data=/tmp/{{ item.name }}-meta-data
       become: true
       loop: "{{ libvirt_vms }}"
       changed_when: true
@@ -354,7 +356,7 @@
         seconds: 30
       when: libvirt_download_result is changed
 
-    - name: Test SSH connectivity to cloud-user
+    - name: Test SSH connectivity to {{ libvirt_cloud_user }}
       ansible.builtin.command: >
         ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null
         -i {{ libvirt_ssh_key_path }}
