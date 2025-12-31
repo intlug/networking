@@ -40,7 +40,7 @@ libvirt_vms:
     graphics: "spice,listen=127.0.0.1"
 
 # Cloud-init user configuration
-libvirt_cloud_user: "cloud-user"
+libvirt_cloud_user: "fedora"
 libvirt_ansible_user: "ansible"
 
 # Libvirt network configuration
