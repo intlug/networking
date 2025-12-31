@@ -18,25 +18,25 @@ See [BOOTSTRAP.md](BOOTSTRAP.md) for detailed instructions.
 ```
 ansible/
 ├── ansible.cfg           # Ansible configuration
-├── inventory            # Host inventory file
-├── bootstrap-lab.yml    # NEW! Complete lab setup from scratch
-├── provision-vms.yml   # VM provisioning (add NICs via libvirt)
-├── site.yml            # Main configuration playbook
-├── BOOTSTRAP.md        # Bootstrap documentation
-├── group_vars/         # Group variables
-│   ├── all.yml        # Variables for all hosts
-│   └── gateway.yml    # Gateway-specific variables
-└── roles/             # Ansible roles
+├── inventory             # Host inventory file
+├── bootstrap-lab.yml     # NEW! Complete lab setup from scratch
+├── provision-vms.yml     # VM provisioning (add NICs via libvirt)
+├── site.yml              # Main configuration playbook
+├── BOOTSTRAP.md          # Bootstrap documentation
+├── group_vars/           # Group variables
+│   ├── all.yml           # Variables for all hosts
+│   └── gateway.yml       # Gateway-specific variables
+└── roles/                # Ansible roles
     ├── bootstrap_workstation/  # Workstation prep and SSH keys
-    ├── libvirt/           # VM creation and network management
-    ├── base_packages/
-    ├── monitoring/
-    ├── network_tools/
-    ├── network_config/
-    ├── dnsmasq/
-    ├── nginx/
-    ├── nat_gateway/
-    └── gui_setup/
+    ├── libvirt/          # VM creation and network management
+    ├── base_packages/    # Install essential system packages (vim, git, etc.)
+    ├── monitoring/       # Set up monitoring tools (htop, iotop, etc.)
+    ├── network_tools/    # Install network debugging tools (tcpdump, nmap, etc.)
+    ├── network_config/   # Configure network interfaces and firewall zones
+    ├── dnsmasq/          # DNS/DHCP server for isolated network
+    ├── nginx/            # Web server for demonstrations
+    ├── nat_gateway/      # NAT gateway configuration (disabled by default)
+    └── gui_setup/        # GNOME desktop and GUI networking tools
 ```
 
 ## Prerequisites
