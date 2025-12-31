@@ -22,5 +22,6 @@
 
   roles:
     - role: bootstrap_workstation
+      tags: always
     - role: libvirt
       tags: bootstrap
