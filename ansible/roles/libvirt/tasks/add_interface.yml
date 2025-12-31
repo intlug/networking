@@ -3,7 +3,8 @@
 
 - name: Add interface with consistent libvirt connection
   module_defaults:
-    group/community.libvirt.libvirt:
+    community.libvirt:
+      uri: qemu:///system
   block:
     - name: Get current VM XML configuration
       community.libvirt.virt:
