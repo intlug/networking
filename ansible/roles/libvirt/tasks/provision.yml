@@ -4,6 +4,6 @@
 
 - name: Process each VM to add isolated interface
   ansible.builtin.include_tasks: add_interface.yml
-  loop: "{{ vm_list }}"
+  loop: "{{ libvirt_vms }}"
   loop_control:
-    loop_var: libvirt_vm_name
+    loop_var: libvirt_vm

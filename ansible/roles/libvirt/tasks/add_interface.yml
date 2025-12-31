@@ -11,7 +11,7 @@
     - name: Get current VM XML configuration
       community.libvirt.virt:
         command: get_xml
-        name: "{{ libvirt_vm_name }}"
+        name: "{{ libvirt_vm.name }}"
       register: libvirt_vm_xml
 
     - name: Check if isolated interface already exists
@@ -27,7 +27,7 @@
 
     - name: Shutdown VM if running (required to add interface)
       community.libvirt.virt:
-        name: "{{ libvirt_vm_name }}"
+        name: "{{ libvirt_vm.name }}"
         state: shutdown
       when: not libvirt_has_isolated_nic
 
@@ -39,7 +39,7 @@
     - name: Attach isolated network interface to VM
       ansible.builtin.command:
         cmd: >
-          virsh -c qemu:///system attach-interface {{ libvirt_vm_name }}
+          virsh -c qemu:///system attach-interface {{ libvirt_vm.name }}
           --type network
           --source iso
           --model virtio
@@ -50,13 +50,13 @@
 
     - name: Start VM after adding interface
       community.libvirt.virt:
-        name: "{{ libvirt_vm_name }}"
+        name: "{{ libvirt_vm.name }}"
         state: running
       when: not libvirt_has_isolated_nic
 
     - name: Wait for VM to boot and become accessible via SSH
       ansible.builtin.wait_for:
-        host: "{{ libvirt_vm_name }}.local"
+        host: "{{ libvirt_vm.hostname }}"
         port: 22
         delay: 5
         timeout: 120
@@ -66,7 +66,7 @@
       ansible.builtin.debug:
         msg: >
           {% if libvirt_has_isolated_nic %}
-          Isolated interface already exists on {{ libvirt_vm_name }}
+          Isolated interface already exists on {{ libvirt_vm.name }}
           {% else %}
-          Successfully added isolated interface to {{ libvirt_vm_name }}
+          Successfully added isolated interface to {{ libvirt_vm.name }}
           {% endif %}
