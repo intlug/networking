@@ -111,13 +111,37 @@
         mode: '0755'
       become: true
 
+    - name: Download Fedora Cloud CHECKSUM file
+      ansible.builtin.get_url:
+        url: "https://download.fedoraproject.org/pub/fedora/linux/releases/{{ libvirt_fedora_version }}/Cloud/x86_64/images/Fedora-Cloud-{{ libvirt_fedora_version }}-1.6-x86_64-CHECKSUM"
+        dest: "/tmp/fedora-{{ libvirt_fedora_version }}-cloud-checksum"
+        mode: '0644'
+
+    - name: Extract SHA256 checksum for qcow2 image
+      ansible.builtin.shell: >
+        grep 'SHA256.*{{ libvirt_base_image_name }}' 
+        /tmp/fedora-{{ libvirt_fedora_version }}-cloud-checksum |
+        sed 's/.*= //'
+      register: libvirt_expected_checksum
+      changed_when: false
+
+    - name: Check if base image exists with valid checksum
+      ansible.builtin.stat:
+        path: "{{ libvirt_image_dir }}/{{ libvirt_base_image_name }}"
+        checksum_algorithm: sha256
+        get_checksum: true
+      register: libvirt_base_image_stat
+
     - name: Download Fedora Cloud image with checksum validation
       ansible.builtin.get_url:
         url: "{{ libvirt_fedora_cloud_image_url }}"
         dest: "{{ libvirt_image_dir }}/{{ libvirt_base_image_name }}"
-        checksum: "sha256:https://download.fedoraproject.org/pub/fedora/linux/releases/{{ libvirt_fedora_version }}/Cloud/x86_64/images/Fedora-Cloud-{{ libvirt_fedora_version }}-1.6-x86_64-CHECKSUM"
+        checksum: "sha256:{{ libvirt_expected_checksum.stdout }}"
         mode: '0644'
       become: true
+      when: >
+        not libvirt_base_image_stat.stat.exists or
+        libvirt_base_image_stat.stat.checksum != libvirt_expected_checksum.stdout
       register: libvirt_download_result
 
     - name: Display download status  # noqa: no-handler
