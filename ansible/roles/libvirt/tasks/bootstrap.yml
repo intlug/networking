@@ -3,7 +3,9 @@
 
 - name: Configure VMs with consistent libvirt connection
   module_defaults:
-    community.libvirt:
+    community.libvirt.virt:
+      uri: qemu:///system
+    community.libvirt.virt_net:
       uri: qemu:///system
   block:
     - name: Find mount point containing image directory
