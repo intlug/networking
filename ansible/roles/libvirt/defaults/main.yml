@@ -1,0 +1,45 @@
+---
+# Default variables for bootstrap-libvirt role
+
+# Image configuration
+fedora_version: "43"
+fedora_cloud_image_url: >-
+  https://download.fedoraproject.org/pub/fedora/linux/releases/
+  {{ fedora_version }}/Cloud/x86_64/images/
+  Fedora-Cloud-Base-Generic.x86_64-{{ fedora_version }}-1.1.qcow2
+image_dir: "/var/lib/libvirt/images"
+base_image_name: "fedora-{{ fedora_version }}-cloud-base.qcow2"
+
+# SSH key configuration (should be set by bootstrap-workstation role)
+ssh_key_path: "{{ ansible_env.HOME }}/.ssh/id_fedora"
+
+# VM configuration
+vms:
+  - name: labhost1
+    hostname: labhost1.local
+    ip: 192.168.122.151
+    mac: "52:54:00:00:00:01"
+    memory: 2048
+    vcpus: 2
+    disk_size: 20
+  - name: labhost2
+    hostname: labhost2.local
+    ip: 192.168.122.152
+    mac: "52:54:00:00:00:02"
+    memory: 2048
+    vcpus: 2
+    disk_size: 20
+  - name: labhost3
+    hostname: labhost3.local
+    ip: 192.168.122.153
+    mac: "52:54:00:00:00:03"
+    memory: 2048
+    vcpus: 2
+    disk_size: 20
+
+# Cloud-init user configuration
+cloud_user: "cloud-user"
+ansible_user: "ansible"
+
+# Libvirt network configuration
+libvirt_network: "default"

@@ -74,11 +74,39 @@ Place supporting images in the `images/` directory. Reference them in slides usi
 
 ## Lab Environment
 
-The presentation includes references to hands-on labs using Fedora VMs with:
-- Dual-homed gateway systems
-- Isolated internal networks
-- NAT configuration
-- Service deployments
+The presentation includes hands-on demos using a fully automated lab environment with:
+- 3 Fedora 43 VMs (dual-homed gateway + isolated clients)
+- NetworkManager configurations (CLI & GUI)
+- NAT and routing demonstrations
+- Service deployments (nginx, dnsmasq)
+- Firewall configurations
+
+### Quick Lab Setup
+
+**Option 1: Automated (Recommended)**
+Complete setup in one command:
+```bash
+cd ansible
+./setup-all.sh
+```
+
+**Option 2: Step-by-Step**
+```bash
+cd ansible
+ansible-playbook bootstrap-lab.yml    # Create VMs
+ansible-playbook provision-vms.yml    # Add network interfaces
+ansible-playbook site.yml             # Configure services
+```
+
+See [ansible/BOOTSTRAP.md](ansible/BOOTSTRAP.md) for detailed instructions and [LAB-SETUP.md](LAB-SETUP.md) for architecture details.
+
+### Prerequisites
+
+- libvirt/KVM with default network active
+- User in libvirt group
+- Ansible installed with required collections
+
+Full setup guide: [ansible/BOOTSTRAP.md](ansible/BOOTSTRAP.md)
 
 ## Contributing
 

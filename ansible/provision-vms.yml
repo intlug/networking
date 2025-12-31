@@ -13,4 +13,5 @@
       - labhost2
       - labhost3
   roles:
-    - libvirt-config
+    - role: libvirt
+      tags: provision

@@ -1,0 +1,26 @@
+---
+# Bootstrap playbook - Creates VMs from scratch and prepares them for Ansible
+# This playbook:
+# 1. Downloads Fedora Cloud image
+# 2. Creates 3 VMs with cloud-init configuration
+# 3. Configures static DHCP leases in libvirt default network
+# 4. Waits for VMs to boot
+# 5. Creates ansible user with sudo access
+#
+# Prerequisites:
+# - libvirt/KVM installed and running
+# - SSH key at ~/.ssh/id_fedora (will be created if missing)
+# - User in libvirt group
+#
+# Usage: ansible-playbook bootstrap-lab.yml
+
+- name: Bootstrap Lab Environment
+  hosts: localhost
+  connection: local
+  gather_facts: true
+  become: false
+
+  roles:
+    - role: bootstrap-workstation
+    - role: libvirt
+      tags: bootstrap
