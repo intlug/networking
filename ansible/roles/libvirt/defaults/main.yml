@@ -3,10 +3,7 @@
 
 # Image configuration
 libvirt_fedora_version: "43"
-libvirt_fedora_cloud_image_url: >-
-  https://download.fedoraproject.org/pub/fedora/linux/releases/
-  {{ libvirt_fedora_version }}/Cloud/x86_64/images/
-  Fedora-Cloud-Base-Generic.x86_64-{{ libvirt_fedora_version }}-1.1.qcow2
+libvirt_fedora_cloud_image_url: "https://download.fedoraproject.org/pub/fedora/linux/releases/{{ libvirt_fedora_version }}/Cloud/x86_64/images/Fedora-Cloud-Base-Generic.x86_64-{{ libvirt_fedora_version }}-1.1.qcow2"  # noqa: yaml[line-length]
 libvirt_image_dir: "/var/lib/libvirt/images"
 libvirt_base_image_name: "fedora-{{ libvirt_fedora_version }}-cloud-base.qcow2"
 libvirt_min_disk_space_gb: 30
