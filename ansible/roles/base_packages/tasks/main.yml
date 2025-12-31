@@ -1,13 +1,22 @@
 ---
 # Install base packages on all hosts
 
-- name: Install standard admin tools
+- name: Install package groups
   ansible.builtin.dnf:
     name:
       - "@core"
       - "@standard"
       - "@admin-tools"
       - "@system-tools"
+    state: present
+  register: base_packages_groups_result
+  failed_when:
+    - base_packages_groups_result.rc != 0
+    - "'already installed' not in base_packages_groups_result.msg | default('')"
+
+- name: Install additional utility packages
+  ansible.builtin.dnf:
+    name:
       - git
       - vim
       - nano
@@ -18,3 +27,14 @@
       - net-tools
       - bind-utils
     state: present
+  register: base_packages_utils_result
+  failed_when:
+    - base_packages_utils_result.rc != 0
+    - "'already installed' not in base_packages_utils_result.msg | default('')"
+
+- name: Display package installation summary
+  ansible.builtin.debug:
+    msg: |
+      Package installation summary:
+      - Groups: {{ 'Updated' if base_packages_groups_result.changed else 'Already current' }}
+      - Utilities: {{ 'Updated' if base_packages_utils_result.changed else 'Already current' }}

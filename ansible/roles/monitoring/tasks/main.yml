@@ -7,14 +7,14 @@
       - cockpit
       - cockpit-networkmanager
       - cockpit-storaged
-      - cockpit-pcp
     state: present
 
-- name: Install PCP (Performance Co-Pilot)
+- name: Install PCP (Performance Co-Pilot) with GUI support
   ansible.builtin.dnf:
     name:
       - pcp
       - pcp-system-tools
+      - pcp-gui  # Provides Cockpit integration (replaces cockpit-pcp)
     state: present
 
 - name: Enable and start cockpit service
