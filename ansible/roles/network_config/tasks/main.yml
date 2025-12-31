@@ -6,7 +6,7 @@
     gather_subset:
       - network
 
-- name: Identify public interface (connected to 192.168.122.0/24)
+- name: Identify public interface (connected to {{ public_network }})
   ansible.builtin.set_fact:
     network_config_public_interface: >-
       {{
@@ -15,7 +15,7 @@
         | map('extract', hostvars[inventory_hostname])
         | selectattr('ipv4', 'defined')
         | selectattr('ipv4.address', 'defined')
-        | selectattr('ipv4.address', 'match', '^192\.168\.122\.')
+        | selectattr('ipv4.address', 'match', '^' ~ public_network_prefix ~ '\.')
         | map(attribute='device')
         | first
       }}

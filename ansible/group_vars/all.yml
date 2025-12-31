@@ -2,7 +2,8 @@
 # Network configuration variables
 
 # Public network (default libvirt NAT)
-public_network: "192.168.122.0/24"
+public_network_prefix: "192.168.122"  # Change this to use different network
+public_network: "{{ public_network_prefix }}.0/24"
 public_zone: "public"
 
 # Isolated network

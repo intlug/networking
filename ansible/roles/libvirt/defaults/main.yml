@@ -12,10 +12,11 @@ libvirt_min_disk_space_gb: 30
 libvirt_ssh_key_path: "{{ ansible_env.HOME }}/.ssh/id_fedora"
 
 # VM configuration
+# Note: IP addresses use public_network_prefix from group_vars/all.yml
 libvirt_vms:
   - name: labhost1
     hostname: labhost1.local
-    ip: 192.168.122.151
+    ip: "{{ public_network_prefix }}.151"
     mac: "52:54:00:00:00:01"
     memory: 2048
     vcpus: 2
@@ -23,7 +24,7 @@ libvirt_vms:
     graphics: "spice,listen=127.0.0.1"
   - name: labhost2
     hostname: labhost2.local
-    ip: 192.168.122.152
+    ip: "{{ public_network_prefix }}.152"
     mac: "52:54:00:00:00:02"
     memory: 2048
     vcpus: 2
@@ -31,7 +32,7 @@ libvirt_vms:
     graphics: "spice,listen=127.0.0.1"
   - name: labhost3
     hostname: labhost3.local
-    ip: 192.168.122.153
+    ip: "{{ public_network_prefix }}.153"
     mac: "52:54:00:00:00:03"
     memory: 2048
     vcpus: 2
