@@ -1,0 +1,38 @@
+---
+# Network configuration variables
+
+# Public network (default libvirt NAT)
+public_network: "192.168.122.0/24"
+public_zone: "public"
+
+# Isolated network
+isolated_network: "10.10.5.0/24"
+isolated_zone: "internal"
+isolated_domain: "isolated"
+
+# DHCP configuration for isolated network
+dhcp_range_start: "10.10.5.50"
+dhcp_range_end: "10.10.5.100"
+
+# Host IP assignments on isolated network
+labhost1_isolated_ip: "10.10.5.10"
+
+# labhost2 and labhost3 get IPs from DHCP
+# but we'll configure dnsmasq to assign them specific IPs
+labhost2_isolated_ip: "10.10.5.51"
+labhost3_isolated_ip: "10.10.5.52"
+
+# DNS configuration
+dns_server: "10.10.5.10"  # labhost1 on isolated network
+
+# Services
+allowed_services_public:
+  - ssh
+  - http
+
+allowed_services_internal:
+  - ssh
+  - http
+  - dns
+  - dhcp
+  - proxy

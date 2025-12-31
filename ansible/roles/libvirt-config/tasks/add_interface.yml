@@ -1,0 +1,57 @@
+---
+# Add isolated interface to a single VM
+
+- name: Get current VM XML configuration
+  community.libvirt.virt:
+    command: get_xml
+    name: "{{ vm_name }}"
+  register: vm_xml
+
+- name: Check if isolated interface already exists
+  ansible.builtin.set_fact:
+    has_isolated_nic: "{{ 'iso' in vm_xml.get_xml }}"
+
+- name: Shutdown VM if running (required to add interface)
+  community.libvirt.virt:
+    name: "{{ vm_name }}"
+    state: shutdown
+  when: not has_isolated_nic
+
+- name: Wait for VM to shut down
+  ansible.builtin.pause:
+    seconds: 10
+  when: not has_isolated_nic
+
+- name: Attach isolated network interface to VM
+  ansible.builtin.command:
+    cmd: >
+      virsh attach-interface {{ vm_name }}
+      --type network
+      --source iso
+      --model virtio
+      --config
+  when: not has_isolated_nic
+  register: attach_result
+
+- name: Start VM after adding interface
+  community.libvirt.virt:
+    name: "{{ vm_name }}"
+    state: running
+  when: not has_isolated_nic
+
+- name: Wait for VM to boot and become accessible via SSH
+  ansible.builtin.wait_for:
+    host: "{{ vm_name }}.local"
+    port: 22
+    delay: 5
+    timeout: 120
+  when: not has_isolated_nic
+
+- name: Display interface addition status
+  ansible.builtin.debug:
+    msg: >
+      {% if has_isolated_nic %}
+      Isolated interface already exists on {{ vm_name }}
+      {% else %}
+      Successfully added isolated interface to {{ vm_name }}
+      {% endif %}

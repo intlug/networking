@@ -1,0 +1,18 @@
+---
+# Install networking tools mentioned in presentation
+
+- name: Install network analysis and monitoring tools
+  ansible.builtin.dnf:
+    name:
+      - tcpdump
+      - wireshark-cli
+      - nmap
+      - traceroute
+      - mtr
+      - iftop
+      - nload
+      - iperf3
+      - ifstat
+      - netcat
+      - telnet
+    state: present

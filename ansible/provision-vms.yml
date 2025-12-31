@@ -1,0 +1,16 @@
+---
+# VM provisioning playbook - adds isolated network interfaces via libvirt
+# Run this BEFORE site.yml to prepare VMs with required network interfaces
+# This runs on the hypervisor (localhost)
+
+- name: Add isolated network interfaces to VMs via libvirt
+  hosts: localhost
+  connection: local
+  gather_facts: no
+  vars:
+    vm_list:
+      - labhost1
+      - labhost2
+      - labhost3
+  roles:
+    - libvirt-config

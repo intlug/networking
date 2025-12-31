@@ -1,0 +1,9 @@
+---
+# Add isolated network interface to VMs via libvirt
+# This runs on localhost (hypervisor) to modify the VMs
+
+- name: Process each VM to add isolated interface
+  include_tasks: add_interface.yml
+  loop: "{{ vm_list }}"
+  loop_control:
+    loop_var: vm_name

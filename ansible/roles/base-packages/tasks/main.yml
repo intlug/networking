@@ -1,0 +1,22 @@
+---
+# Install base packages on all hosts
+
+- name: Install core and base package groups
+  ansible.builtin.dnf:
+    name:
+      - "@core"
+      - "@base"
+    state: present
+
+- name: Install standard admin tools
+  ansible.builtin.dnf:
+    name:
+      - vim
+      - nano
+      - wget
+      - curl
+      - htop
+      - tmux
+      - net-tools
+      - bind-utils
+    state: present

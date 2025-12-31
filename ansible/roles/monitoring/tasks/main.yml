@@ -1,0 +1,36 @@
+---
+# Setup cockpit and PCP for monitoring
+
+- name: Install cockpit and related packages
+  ansible.builtin.dnf:
+    name:
+      - cockpit
+      - cockpit-networkmanager
+      - cockpit-storaged
+      - cockpit-pcp
+    state: present
+
+- name: Install PCP (Performance Co-Pilot)
+  ansible.builtin.dnf:
+    name:
+      - pcp
+      - pcp-system-tools
+    state: present
+
+- name: Enable and start cockpit service
+  ansible.builtin.systemd:
+    name: cockpit.socket
+    enabled: yes
+    state: started
+
+- name: Enable and start pmcd (PCP daemon)
+  ansible.builtin.systemd:
+    name: pmcd
+    enabled: yes
+    state: started
+
+- name: Enable and start pmlogger
+  ansible.builtin.systemd:
+    name: pmlogger
+    enabled: yes
+    state: started

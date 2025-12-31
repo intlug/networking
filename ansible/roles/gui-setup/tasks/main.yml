@@ -1,0 +1,103 @@
+---
+# Configure GUI on labhost3 for network management demonstration
+
+- name: Install GNOME Desktop environment
+  ansible.builtin.dnf:
+    name:
+      - '@gnome-desktop'
+      - gnome-tweaks
+    state: present
+
+- name: Install additional GUI network tools
+  ansible.builtin.dnf:
+    name:
+      - wireshark
+      - zenmap
+      - gnome-nettool
+    state: present
+
+- name: Set default target to graphical
+  ansible.builtin.file:
+    src: /usr/lib/systemd/system/graphical.target
+    dest: /etc/systemd/system/default.target
+    state: link
+    force: yes
+
+- name: Enable GDM (GNOME Display Manager)
+  ansible.builtin.systemd:
+    name: gdm
+    enabled: yes
+
+- name: Create desktop configuration directory for ansible user
+  ansible.builtin.file:
+    path: /home/ansible/.config/autostart
+    state: directory
+    owner: ansible
+    group: ansible
+    mode: '0755'
+
+- name: Configure automatic login for ansible user (for demo)
+  ansible.builtin.lineinfile:
+    path: /etc/gdm/custom.conf
+    regexp: '^#?AutomaticLogin='
+    line: 'AutomaticLogin=ansible'
+    insertafter: '^\[daemon\]'
+    state: present
+
+- name: Enable automatic login
+  ansible.builtin.lineinfile:
+    path: /etc/gdm/custom.conf
+    regexp: '^#?AutomaticLoginEnable='
+    line: 'AutomaticLoginEnable=True'
+    insertafter: '^\[daemon\]'
+    state: present
+
+- name: Create desktop shortcut for network settings
+  ansible.builtin.copy:
+    content: |
+      [Desktop Entry]
+      Version=1.0
+      Type=Application
+      Name=Network Settings
+      Comment=Open GNOME Network Settings
+      Exec=gnome-control-center network
+      Icon=preferences-system-network
+      Terminal=false
+      Categories=Settings;Network;
+    dest: /home/ansible/Desktop/network-settings.desktop
+    owner: ansible
+    group: ansible
+    mode: '0755'
+
+- name: Create desktop shortcut for terminal
+  ansible.builtin.copy:
+    content: |
+      [Desktop Entry]
+      Version=1.0
+      Type=Application
+      Name=Terminal
+      Comment=Open Terminal
+      Exec=gnome-terminal
+      Icon=utilities-terminal
+      Terminal=false
+      Categories=System;
+    dest: /home/ansible/Desktop/terminal.desktop
+    owner: ansible
+    group: ansible
+    mode: '0755'
+
+- name: Set permissions for Desktop directory
+  ansible.builtin.file:
+    path: /home/ansible/Desktop
+    owner: ansible
+    group: ansible
+    mode: '0755'
+    state: directory
+
+- name: Display GUI setup completion message
+  ansible.builtin.debug:
+    msg:
+      - "GUI setup complete on {{ inventory_hostname }}"
+      - "The system will boot into graphical mode on next reboot"
+      - "Automatic login is configured for user 'ansible'"
+      - "Network Settings shortcut available on desktop"

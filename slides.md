@@ -1,10 +1,56 @@
 ---
 marp: true
-theme: default
+theme: gaia
+class: invert
 paginate: true
 header: 'Linux Networking - INTLUG'
-footer: 'International Linux User Group'
+footer: 'January 2026'
 ---
+
+<style>
+section {
+  font-size: 28px;
+}
+h1 {
+  font-size: 1.6em;
+}
+h2 {
+  font-size: 1.3em;
+  padding-bottom: 0.1em;
+  border-bottom: 2px solid rgba(255, 255, 255, 0.3);
+  margin-bottom: 0.8em;
+}
+li {
+  font-size: 0.95em;
+}
+/* Code blocks - default for CLI/code examples */
+pre {
+  background-color: transparent;
+  padding: 0.5em 0;
+  margin: 0.5em 0;
+  font-family: monospace;
+}
+pre code {
+  color: #ffffff !important;
+}
+/* ASCII diagrams - centered with scale */
+section.ascii pre {
+  margin: 2em auto 1em auto;
+  width: fit-content;
+  transform: scale(2);
+  transform-origin: center center;
+}
+section.ascii pre code {
+  font-size: inherit;
+}
+.centered-slide {
+   display: flex;
+   flex-direction: column;
+   justify-content: center; /* Centers content vertically */
+   text-align: center;      /* Centers text horizontally */
+}
+
+</style>
 
 <!-- _paginate: false -->
 <!-- _header: "" -->
@@ -51,12 +97,9 @@ We meet **every first Saturday** of the month
 *Monthly agenda, discussions, and resources available on Heylo*
 
 ---
+<!-- _class: lead invert -->
 
 # Linux Networking Fundamentals
-## A Practical Guide for Fedora Systems
-
-**Today's Topic**
-January 3rd, 2026
 
 ---
 
@@ -99,9 +142,6 @@ Untangle the Gordian Knot of Linux networking! This is an introductory session -
 ---
 
 <style scoped>
-section {
-  font-size: 1.8em;
-}
 .agenda-columns {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -110,7 +150,7 @@ section {
 }
 </style>
 
-# Agenda
+## Agenda
 
 <div class="agenda-columns">
 <div>
@@ -142,12 +182,12 @@ section {
    - Proxy Servers
    - Service Configuration (DNS, DHCP, Web Servers)
 
-6. **Lab Environment Overview**
-
 </div>
 </div>
 
 ---
+
+<!-- _class: lead invert -->
 
 # Part 1: Networking Foundations
 
@@ -304,9 +344,11 @@ OSI Layer              TCP/IP Layer
 - **DNS**: Translates hostnames to IPs (humans ≠ numbers)
 
 ---
-
+<!-- _class: invert ascii -->
 <style scoped>
-section { font-size: 1.6em; }
+section.ascii pre {
+  margin: 4em auto 3.5em auto;
+}
 </style>
 
 ## Ethernet Frame & IP Packet Structure
@@ -331,20 +373,20 @@ section { font-size: 1.6em; }
       │          │    10    │    20    │               │
       └──────────┴──────────┴──────────┴───────────────┘
 ```
-
 **Layer 2 (Ethernet)**: MAC addresses (local) | **Layer 3 (IP)**: IP addresses (end-to-end)  
 **MAC changes hop-by-hop** | **IP stays constant** | **Both headers in every packet**
 
 ---
-
+<!-- _class: ascii invert -->
 <style scoped>
-section { font-size: 1.8em; }
-pre { font-family: monospace; }
+section.ascii pre {
+  margin: 2em auto 3.5em auto;
+}
 </style>
 
 ## Layer 2: Same Subnet Communication
 
-<pre>
+```
 ┌────────────────────────────────────────────────────┐
 │      192.168.1.0/24 Network (Switch)               │
 │                                                    │
@@ -355,15 +397,16 @@ pre { font-family: monospace; }
 │       ←─────── Ethernet Frame ────────→            │
 │   [SRC MAC: aa:bb] [DST MAC: 11:22] [DATA]         │
 └────────────────────────────────────────────────────┘
-</pre>
+```
 
 **Same subnet = Direct communication** | ARP resolves IP→MAC | Switch uses MACs | **No router**
 
 ---
-
+<!-- _class: ascii invert -->
 <style scoped>
-section { font-size: 1.6em; }
-pre { font-family: monospace; }
+section.ascii pre {
+  margin: 1em auto 1em auto;
+}
 </style>
 
 ## Layer 3: Routing Between Subnets
@@ -392,6 +435,12 @@ IP:       SRC IP:  192.168.1.10         →  DST IP:  10.0.0.5
 **MAC changes each hop** (Layer 2) | **IP stays constant** (Layer 3)
 
 ---
+<!-- _class: ascii invert -->
+<style scoped>
+section.ascii pre {
+  margin: 2.5em auto 3em auto;
+}
+</style>
 
 ## How Hosts Know: Local vs Remote?
 
@@ -416,6 +465,12 @@ Host A: 192.168.1.10/24  wants to reach  10.0.0.5
 **Subnet mask = The decision maker** for local vs remote traffic
 
 ---
+<!-- _class: ascii invert -->
+<style scoped>
+section.ascii pre {
+  margin: 2em auto 2em auto;
+}
+</style>
 
 ## Subnet Mask Impact
 
@@ -450,6 +505,7 @@ Broadcast: 10.0.255.255  |  Hosts/Net: 65534
 *Linux primarily works at layers 2-7*
 
 ---
+<!-- _class: lead invert -->
 
 # Part 2: Network Configuration on Fedora
 
@@ -458,63 +514,50 @@ Broadcast: 10.0.255.255  |  Hosts/Net: 65534
 ## NetworkManager: The Modern Approach
 
 **Why NetworkManager?**
-- D-Bus based architecture (modern IPC)
-- Dynamic configuration management (changes apply instantly)
-- Integrated with systemd (plays nice with the init system)
-- Works with PolKit for permissions (no more sudo for everything)
-- Supports multiple connection types (WiFi, VPN, bridges, you name it)
+- D-Bus based architecture for modern IPC
+- Dynamic configuration (changes apply instantly)
+- Integrated with systemd and PolKit
+- Supports WiFi, VPN, bridges, and more
 
 **Advantages over legacy methods:**
-- No manual file editing in `/etc/sysconfig/network-scripts/` (remember those days?)
-- Automatic connection management (no more ifdown/ifup dance)
-- Better integration with desktop environments
-
-**Translation:** NetworkManager = Less pain, more gain!
+- No manual `/etc/sysconfig/network-scripts/` editing
+- Automatic connection management
+- Desktop environment integration
 
 ---
+<!-- class: invert code -->
 
 ## nmcli: NetworkManager Command Line
 
-**View connections:**
+**View connections and status:**
 ```bash
 nmcli connection show
 nmcli device status
-```
-
-**View IP configuration:**
-```bash
 nmcli device show eth0
 ip addr show eth0
 ```
 
 **Create a new connection:**
 ```bash
-nmcli connection add con-name "MyConnection" \
-    type ethernet ifname eth0 \
-    ipv4.addresses 192.168.1.100/24 \
-    ipv4.gateway 192.168.1.1 \
-    ipv4.dns "8.8.8.8 8.8.4.4" \
-    ipv4.method manual
+nmcli connection add con-name "MyConnection" type ethernet \
+    ifname eth0 ipv4.addresses 192.168.1.100/24 \
+    ipv4.gateway 192.168.1.1 ipv4.dns "8.8.8.8" ipv4.method manual
 ```
 
 ---
+<!-- class: invert code -->
 
 ## nmcli: Managing Connections
 
-**Activate/deactivate:**
 ```bash
+# Activate/deactivate
 nmcli connection up MyConnection
 nmcli connection down MyConnection
-```
 
-**Modify existing connection:**
-```bash
-nmcli connection modify MyConnection \
-    ipv4.addresses 192.168.1.150/24
-```
+# Modify existing connection
+nmcli connection modify MyConnection ipv4.addresses 192.168.1.150/24
 
-**Delete connection:**
-```bash
+# Delete connection
 nmcli connection delete MyConnection
 ```
 
@@ -522,41 +565,37 @@ nmcli connection delete MyConnection
 
 ## GUI Network Configuration
 
-**GNOME Settings (GUI):**
-- Settings → Network
-- Click gear icon for advanced options
-- Easy management for basic configurations
+**GNOME Settings:**
+- Settings → Network → Gear icon for advanced options
 
 **nmtui (Text UI):**
 ```bash
 nmtui
 ```
 - Terminal-based interface
-- Good for remote systems without X
-- Simpler than memorizing nmcli commands
+- Good for remote systems
+- Simpler than nmcli commands
 
 ---
 
 ## PolKit & Network Permissions
 
-**PolKit** controls who can modify network settings
+**PolKit** controls network settings access
 
-**Check permissions:**
 ```bash
+# Check permissions
 pkaction | grep -i network
-```
 
-**Common actions:**
-- `org.freedesktop.NetworkManager.network-control`
-- `org.freedesktop.NetworkManager.settings.modify.system`
+# Common actions:
+# org.freedesktop.NetworkManager.network-control
+# org.freedesktop.NetworkManager.settings.modify.system
 
-**Allow user to manage networks:**
-```bash
-# Add user to specific group
+# Allow user to manage networks
 sudo usermod -aG wheel username
 ```
 
 ---
+<!-- _class: invert lead -->
 
 # Part 3: Essential Networking Tools
 
@@ -673,26 +712,23 @@ sudo tcpdump -i eth0 -w capture.pcap
 **Wireshark** - GUI packet analyzer
 
 ---
+<!-- _class: invert lead -->
 
 # Part 4: Firewall Management
 
 ---
 
-## firewalld: Fedora's Firewall
+## firewalld: The Firewall
 
 **Why firewalld?**
-- Dynamic firewall management (no more flushing all rules!)
-- Zone-based configuration (trust levels for different networks)
-- No need to restart for changes (revolutionary!)
-- Integration with NetworkManager (they talk to each other)
-- D-Bus interface (scriptable and GUI-friendly)
+- Dynamic firewall (no flushing rules!) | Zone-based (trust levels)
+- No restart needed | NetworkManager integration | D-Bus interface
 
 **Architecture:**
-- Frontend to nftables/iptables (hides the complexity)
-- Zones define trust levels (trust your home network, not the coffee shop WiFi)
-- Services are predefined rule sets (don't memorize port numbers)
+- Frontend to nftables/iptables | Zones define trust levels
+- Services = predefined rule sets
 
-**Remember:** `iptables` made strong sysadmins cry. `firewalld` makes life easier.
+**Remember:** `iptables` made sysadmins cry. `firewalld` is easier!
 
 ---
 
@@ -798,7 +834,7 @@ sudo firewall-cmd --permanent --add-rich-rule='
 ```
 
 ---
-
+<!-- _class: invert lead -->
 # Part 5: Advanced Topics
 
 ---
@@ -806,41 +842,29 @@ sudo firewall-cmd --permanent --add-rich-rule='
 ## Dual-Homed Systems
 
 **What is dual-homed?**
-A system with two network interfaces:
-- One connected to routable network (Internet access)
-- One connected to non-routable network (isolated)
-
-**Think of it as:** A bouncer with one foot in the club, one foot on the street.
+Two network interfaces: routable (Internet) + non-routable (isolated)
 
 **Use cases:**
-- Network segmentation (keep the databases away from the internet)
-- Security isolation (DMZ configurations)
-- Lab environments (safe experimentation)
-- Gateway/router systems (be the middleman)
+- Network segmentation | Security isolation (DMZ)
+- Lab environments | Gateway/router systems
 
-**Why bother?** Security through isolation - if the bad guys can't route to it, they can't hack it!
+**Why?** Security through isolation - can't route = can't hack!
 
 ---
 
 ## Dual-Homed Configuration Example
 
-**Scenario:**
-- `eth0`: 192.168.1.100/24 (routable, has gateway)
-- `eth1`: 10.10.10.1/24 (non-routable, no gateway)
+**Scenario:** `eth0`: 192.168.1.100/24 (routable) | `eth1`: 10.10.10.1/24 (non-routable)
 
-**Configure eth0 (routable):**
 ```bash
+# Configure eth0 (routable)
 nmcli connection add con-name "External" type ethernet \
     ifname eth0 ipv4.addresses 192.168.1.100/24 \
-    ipv4.gateway 192.168.1.1 ipv4.dns "8.8.8.8" \
-    ipv4.method manual
-```
+    ipv4.gateway 192.168.1.1 ipv4.dns "8.8.8.8" ipv4.method manual
 
-**Configure eth1 (non-routable):**
-```bash
+# Configure eth1 (non-routable)
 nmcli connection add con-name "Internal" type ethernet \
-    ifname eth1 ipv4.addresses 10.10.10.1/24 \
-    ipv4.method manual
+    ifname eth1 ipv4.addresses 10.10.10.1/24 ipv4.method manual
 ```
 
 ---
@@ -892,10 +916,7 @@ ping -c 4 8.8.8.8          # Should work via NAT
 ## Proxy Server Configuration
 
 **Why use a proxy?**
-- Content filtering (keep cat videos out of the workplace... maybe)
-- Caching for performance (download updates once, serve many)
-- Access control (who gets what)
-- Logging and monitoring (audit trail for compliance)
+Content filtering | Caching | Access control | Logging
 
 **The proxy knows all:** Every HTTP request passes through it.
 
@@ -904,8 +925,6 @@ ping -c 4 8.8.8.8          # Should work via NAT
 sudo dnf install squid
 sudo systemctl enable --now squid
 ```
-
-*Fun fact: Squid is named after the animal, not the game. But it's equally slippery to configure.*
 
 ---
 
@@ -917,10 +936,8 @@ export http_proxy="http://proxy.example.com:3128"
 export https_proxy="http://proxy.example.com:3128"
 export no_proxy="localhost,127.0.0.1,.local"
 ```
-
 **System-wide proxy (GNOME):**
-- Settings → Network → Network Proxy
-- Manual configuration
+Settings → Network → Network Proxy → Manual configuration
 
 **Per-application:**
 ```bash
@@ -932,7 +949,7 @@ wget -e use_proxy=yes -e http_proxy=proxy:3128 http://example.com
 ```
 
 ---
-
+<!-- class: invert lead -->
 # Part 6: Service Configuration
 
 ---
@@ -1067,39 +1084,46 @@ Internet → [Gateway VM] → [Internal Network]
 
 ## Hands-On Exercises
 
+<style scoped>
+.columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2em;
+}
+</style>
+
+<div class="columns">
+<div>
+
 1. **Basic Configuration**
-   - Configure network interfaces with nmcli
-   - Set static IP addresses
-   - Test connectivity
+   - nmcli interface setup
+   - Static IP addressing
 
 2. **Firewall Management**
-   - Configure firewalld zones
-   - Open services and ports
-   - Create custom rules
+   - firewalld zones & rules
+   - Service configuration
 
 3. **Routing & NAT**
-   - Set up dual-homed gateway
-   - Enable NAT for internal network
-   - Verify routing tables
+   - Dual-homed gateway
+   - NAT setup & verification
 
----
-
-## Hands-On Exercises (continued)
+</div>
+<div>
 
 4. **Service Deployment**
-   - Install and configure nginx
-   - Set up reverse proxy
-   - Test load balancing
+   - nginx setup & reverse proxy
+   - Load balancing
 
 5. **Network Troubleshooting**
-   - Diagnose connectivity issues
-   - Use packet capture tools
-   - Monitor network performance
+   - Connectivity diagnostics
+   - Packet capture & monitoring
 
 6. **Advanced Configuration**
-   - Configure DNS/DHCP server
-   - Set up proxy server
-   - Implement network segmentation
+   - DNS/DHCP servers
+   - Proxy & network segmentation
+
+</div>
+</div>
 
 ---
 
@@ -1116,15 +1140,33 @@ Internet → [Gateway VM] → [Internal Network]
 
 # Resources & References
 
+<style scoped>
+.columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2em;
+  margin-bottom: 1em;
+}
+</style>
+
+<div class="columns">
+<div>
+
 **Documentation:**
 - Fedora System Administrator's Guide
 - NetworkManager documentation
 - firewalld.org
 - nginx.org
 
+</div>
+<div>
+
 **Tools Reference:**
 - `man nmcli`, `man ip`, `man firewall-cmd`
 - `man nginx`, `man tcpdump`
+
+</div>
+</div>
 
 **Community:**
 - INTLUG meetings and workshops
@@ -1137,7 +1179,7 @@ Internet → [Gateway VM] → [Internal Network]
 **Thank you for attending!**
 
 Contact: INTLUG
-Next Session: TBD
+Next Session: February 7th, 2026
 
 ---
 

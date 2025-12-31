@@ -1,0 +1,11 @@
+---
+# Gateway-specific variables (labhost1)
+
+public_interface: "eth0"
+isolated_interface: "eth1"
+
+# IP forwarding - configured but disabled by default for demo
+ip_forward_enabled: false
+
+# NAT configuration - rules created but masquerading disabled initially
+nat_masquerade_enabled: false

@@ -1,0 +1,72 @@
+---
+# Install and configure nginx web server and proxy
+
+- name: Install nginx
+  ansible.builtin.dnf:
+    name: nginx
+    state: present
+
+- name: Create demo web page
+  ansible.builtin.template:
+    src: index.html.j2
+    dest: /usr/share/nginx/html/index.html
+    owner: nginx
+    group: nginx
+    mode: '0644'
+
+- name: Deploy nginx configuration
+  ansible.builtin.template:
+    src: nginx.conf.j2
+    dest: /etc/nginx/nginx.conf
+    owner: root
+    group: root
+    mode: '0644'
+    validate: 'nginx -t -c %s'
+  notify: restart nginx
+
+- name: Create proxy configuration directory
+  ansible.builtin.file:
+    path: /etc/nginx/conf.d
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
+
+- name: Deploy proxy configuration
+  ansible.builtin.template:
+    src: proxy.conf.j2
+    dest: /etc/nginx/conf.d/proxy.conf
+    owner: root
+    group: root
+    mode: '0644'
+    validate: 'nginx -t'
+  notify: restart nginx
+
+- name: Add HTTP and proxy services to firewall zones
+  ansible.posix.firewalld:
+    zone: "{{ item.zone }}"
+    service: "{{ item.service }}"
+    permanent: yes
+    state: enabled
+  loop:
+    - { zone: "{{ public_zone }}", service: 'http' }
+    - { zone: "{{ isolated_zone }}", service: 'http' }
+    - { zone: "{{ isolated_zone }}", service: 'proxy-dhcp' }
+
+- name: Reload firewalld
+  ansible.builtin.systemd:
+    name: firewalld
+    state: reloaded
+
+- name: Enable and start nginx
+  ansible.builtin.systemd:
+    name: nginx
+    enabled: yes
+    state: started
+
+- name: Set SELinux boolean for nginx network connect
+  ansible.posix.seboolean:
+    name: httpd_can_network_connect
+    state: yes
+    persistent: yes
+  when: ansible_selinux.status == "enabled"

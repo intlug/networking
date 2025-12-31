@@ -1,0 +1,27 @@
+---
+# Main playbook to configure all lab hosts
+# Run provision-vms.yml first to add network interfaces
+
+- name: Initial setup - Install base packages and tools
+  hosts: demoservers
+  roles:
+    - base-packages
+    - monitoring
+    - network-tools
+
+- name: Configure networking on all hosts
+  hosts: demoservers
+  roles:
+    - network-config
+
+- name: Configure gateway host (labhost1)
+  hosts: gateway
+  roles:
+    - dnsmasq
+    - nginx
+    - nat-gateway
+
+- name: Configure GUI host (labhost3)
+  hosts: guihost
+  roles:
+    - gui-setup

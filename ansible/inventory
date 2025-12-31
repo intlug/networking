@@ -1,0 +1,10 @@
+[demoservers]
+labhost1.local
+labhost2.local
+labhost3.local
+
+[gateway]
+labhost1.local
+
+[guihost]
+labhost3.local

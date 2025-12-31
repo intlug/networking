@@ -1,0 +1,36 @@
+# dnsmasq configuration for isolated network
+# Managed by Ansible - do not edit manually
+
+# Listen only on isolated interface
+interface=eth1
+bind-interfaces
+
+# DHCP configuration
+dhcp-range={{ dhcp_range_start }},{{ dhcp_range_end }},12h
+
+# Static host assignments
+dhcp-host=labhost2,{{ labhost2_isolated_ip }}
+dhcp-host=labhost3,{{ labhost3_isolated_ip }}
+
+# DNS domain
+domain={{ isolated_domain }}
+local=/{{ isolated_domain }}/
+
+# Expand simple hostnames to domain
+expand-hosts
+
+# Read additional hosts from file
+addn-hosts=/etc/dnsmasq.hosts
+
+# Don't forward requests for plain names (no domain)
+domain-needed
+
+# Don't forward requests for private IP ranges to upstream
+bogus-priv
+
+# Enable logging for troubleshooting (can disable after setup)
+log-queries
+log-dhcp
+
+# Cache size
+cache-size=1000
