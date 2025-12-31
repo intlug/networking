@@ -1,385 +1,390 @@
 ---
 # Libvirt bootstrap tasks - creates and configures VMs
 
-- name: Find mount point containing image directory
-  ansible.builtin.set_fact:
-    libvirt_image_mount: "{{ item }}"
-  loop: "{{ ansible_mounts | sort(attribute='mount', reverse=true) }}"
-  when: libvirt_image_dir is match('^' ~ item.mount ~ '(/|$)')
-  loop_control:
-    label: "{{ item.mount }}"
+- name: Configure VMs with consistent libvirt connection
+  module_defaults:
+    group/community.libvirt.libvirt:
+      uri: qemu:///system
+  block:
+    - name: Find mount point containing image directory
+      ansible.builtin.set_fact:
+        libvirt_image_mount: "{{ item }}"
+      loop: "{{ ansible_mounts | sort(attribute='mount', reverse=true) }}"
+      when: libvirt_image_dir is match('^' ~ item.mount ~ '(/|$)')
+      loop_control:
+        label: "{{ item.mount }}"
 
-- name: Fail if insufficient disk space
-  ansible.builtin.fail:
-    msg: >
-      Insufficient disk space in {{ libvirt_image_dir }}.
-      Available: {{ (libvirt_image_mount.size_available / 1024 / 1024 / 1024) | int }}GB,
-      Required: {{ libvirt_min_disk_space_gb }}GB
-  when: (libvirt_image_mount.size_available / 1024 / 1024 / 1024) | int < libvirt_min_disk_space_gb
+    - name: Fail if insufficient disk space
+      ansible.builtin.fail:
+        msg: >
+          Insufficient disk space in {{ libvirt_image_dir }}.
+          Available: {{ (libvirt_image_mount.size_available / 1024 / 1024 / 1024) | int }}GB,
+          Required: {{ libvirt_min_disk_space_gb }}GB
+      when: (libvirt_image_mount.size_available / 1024 / 1024 / 1024) | int < libvirt_min_disk_space_gb
 
-- name: Check if iso network exists
-  community.libvirt.virt_net:
-    command: list_nets
-  register: libvirt_existing_networks
+    - name: Check if iso network exists
+      community.libvirt.virt_net:
+        command: list_nets
+      register: libvirt_existing_networks
 
-- name: Get existing iso network configuration
-  community.libvirt.virt_net:
-    command: get_xml
-    name: "{{ libvirt_iso_network }}"
-  register: libvirt_iso_network_xml
-  when: libvirt_iso_network in libvirt_existing_networks.list_nets
+    - name: Get existing iso network configuration
+      community.libvirt.virt_net:
+        command: get_xml
+        name: "{{ libvirt_iso_network }}"
+      register: libvirt_iso_network_xml
+      when: libvirt_iso_network in libvirt_existing_networks.list_nets
 
-- name: Check iso network IP configuration
-  community.general.xml:
-    xmlstring: "{{ libvirt_iso_network_xml.get_xml }}"
-    xpath: /network/ip
-    content: attribute
-  register: libvirt_iso_network_ip_check
-  when: libvirt_iso_network in libvirt_existing_networks.list_nets
+    - name: Check iso network IP configuration
+      community.general.xml:
+        xmlstring: "{{ libvirt_iso_network_xml.get_xml }}"
+        xpath: /network/ip
+        content: attribute
+      register: libvirt_iso_network_ip_check
+      when: libvirt_iso_network in libvirt_existing_networks.list_nets
 
-- name: Check iso network forwarding configuration
-  community.general.xml:
-    xmlstring: "{{ libvirt_iso_network_xml.get_xml }}"
-    xpath: /network/forward
-    count: true
-  register: libvirt_iso_network_forward_check
-  when: libvirt_iso_network in libvirt_existing_networks.list_nets
-
-- name: Warn if iso network has incorrect configuration
-  ansible.builtin.debug:
-    msg: |
-      WARNING: Existing iso network has configuration that may impact the demo:
-      {% if libvirt_iso_network_ip_check.matches is defined %}
-      {% set ip_attrs = libvirt_iso_network_ip_check.matches[0].ip %}
-      {% if ip_attrs.address | default('') != '10.10.5.1' or ip_attrs.netmask | default('') != '255.255.255.0' %}
-      - Network subnet is {{ ip_attrs.address | default('unknown') }}/{{ ip_attrs.netmask | default('unknown') }} (expected 10.10.5.1/255.255.255.0)
-      {% endif %}
-      {% endif %}
-      {% if libvirt_iso_network_forward_check.count | default(0) > 0 %}
-      - Network has forwarding/NAT enabled (expected: isolated network with no forwarding)
-      {% endif %}
-      Consider removing and recreating: virsh net-destroy {{ libvirt_iso_network }} && virsh net-undefine {{ libvirt_iso_network }}
-  when:
-    - libvirt_iso_network in libvirt_existing_networks.list_nets
-    - >
-      (libvirt_iso_network_ip_check.matches is defined and
-       (libvirt_iso_network_ip_check.matches[0].ip.address | default('') != '10.10.5.1' or
-        libvirt_iso_network_ip_check.matches[0].ip.netmask | default('') != '255.255.255.0')) or
-      (libvirt_iso_network_forward_check.count | default(0) > 0)
-
-- name: Create iso network XML definition
-  ansible.builtin.copy:
-    content: |
-      <network>
-        <name>{{ libvirt_iso_network }}</name>
-        <bridge name="{{ libvirt_iso_network_bridge }}" stp="on" delay="0"/>
-        <ip address="10.10.5.1" netmask="255.255.255.0">
-        </ip>
-      </network>
-    dest: "/tmp/{{ libvirt_iso_network }}-network.xml"
-    mode: '0644'
-  when: libvirt_iso_network not in libvirt_existing_networks.list_nets
-
-- name: Define iso network
-  ansible.builtin.command:
-    cmd: virsh net-define /tmp/{{ libvirt_iso_network }}-network.xml
-  when: libvirt_iso_network not in libvirt_existing_networks.list_nets
-  changed_when: true
-
-- name: Set iso network to autostart
-  ansible.builtin.command:
-    cmd: virsh net-autostart {{ libvirt_iso_network }}
-  when: libvirt_iso_network not in libvirt_existing_networks.list_nets
-  changed_when: true
-
-- name: Start iso network
-  community.libvirt.virt_net:
-    name: "{{ libvirt_iso_network }}"
-    state: active
-
-- name: Ensure image directory exists
-  ansible.builtin.file:
-    path: "{{ libvirt_image_dir }}"
-    state: directory
-    mode: '0755'
-  become: true
-
-- name: Check if base image already exists
-  ansible.builtin.stat:
-    path: "{{ libvirt_image_dir }}/{{ libvirt_base_image_name }}"
-  register: libvirt_base_image_stat
-
-- name: Download Fedora Cloud image
-  ansible.builtin.get_url:
-    url: "{{ libvirt_fedora_cloud_image_url }}"
-    dest: "{{ libvirt_image_dir }}/{{ libvirt_base_image_name }}"
-    mode: '0644'
-  become: true
-  when: not libvirt_base_image_stat.stat.exists
-  register: libvirt_download_result
-
-- name: Display download status  # noqa: no-handler
-  ansible.builtin.debug:
-    msg: "Fedora Cloud image downloaded successfully"
-  when: libvirt_download_result is changed
-
-- name: Check existing VMs
-  community.libvirt.virt:
-    command: list_vms
-  register: libvirt_existing_vms
-
-- name: Stop and destroy existing lab VMs
-  community.libvirt.virt:
-    name: "{{ item.name }}"
-    state: destroyed
-  loop: "{{ libvirt_vms }}"
-  when: item.name in libvirt_existing_vms.list_vms
-  register: libvirt_destroy_result
-  failed_when: libvirt_destroy_result.failed and 'not found' not in (libvirt_destroy_result.msg | default(''))
-
-- name: Undefine existing lab VMs
-  community.libvirt.virt:
-    name: "{{ item.name }}"
-    command: undefine
-  loop: "{{ libvirt_vms }}"
-  when: item.name in libvirt_existing_vms.list_vms
-  register: libvirt_undefine_result
-  failed_when: libvirt_undefine_result.failed and 'not found' not in (libvirt_undefine_result.msg | default(''))
-
-- name: Remove old VM disk images
-  ansible.builtin.file:
-    path: "{{ libvirt_image_dir }}/{{ item.name }}.qcow2"
-    state: absent
-  become: true
-  loop: "{{ libvirt_vms }}"
-
-- name: Create VM disk images with backing store
-  ansible.builtin.command: >
-    qemu-img create -F qcow2
-    -b {{ libvirt_image_dir }}/{{ libvirt_base_image_name }}
-    -f qcow2
-    {{ libvirt_image_dir }}/{{ item.name }}.qcow2
-    20G
-  become: true
-  loop: "{{ libvirt_vms }}"
-  changed_when: true
-
-- name: Set permissions on VM disk images
-  ansible.builtin.file:
-    path: "{{ libvirt_image_dir }}/{{ item.name }}.qcow2"
-    owner: qemu
-    group: qemu
-    mode: '0600'
-  become: true
-  loop: "{{ libvirt_vms }}"
-
-- name: Create cloud-init meta-data files
-  ansible.builtin.copy:
-    content: |
-      instance-id: {{ item.name }}
-      local-hostname: {{ item.hostname }}
-    dest: "/tmp/{{ item.name }}-meta-data"
-    mode: '0644'
-  loop: "{{ libvirt_vms }}"
-
-- name: Create cloud-init user-data files  # noqa: no-handler
-  ansible.builtin.copy:
-    content: |
-      #cloud-config
-      hostname: {{ item.hostname }}
-      fqdn: {{ item.hostname }}
-      manage_etc_hosts: true
-
-      users:
-        - name: {{ libvirt_cloud_user }}
-          sudo: ALL=(ALL) NOPASSWD:ALL
-          groups: wheel
-          shell: /bin/bash
-          ssh_authorized_keys:
-            - {{ bootstrap_workstation_ssh_public_key_content }}
-        - name: {{ libvirt_ansible_user }}
-          sudo: ALL=(ALL) NOPASSWD:ALL
-          groups: wheel
-          shell: /bin/bash
-          ssh_authorized_keys:
-            - {{ bootstrap_workstation_ssh_public_key_content }}
-
-      # Change default target to multi-user (no GUI)
-      bootcmd:
-        - systemctl set-default multi-user.target
-
-      # Ensure SSH is enabled
-      runcmd:
-        - systemctl enable sshd
-        - systemctl start sshd
-
-      # Grow root filesystem
-      growpart:
-        mode: auto
-        devices: ['/']
-
-      packages:
-        - qemu-guest-agent
-
-      package_update: true
-      package_upgrade: false
-
-      final_message: "Cloud-init completed. System is ready."
-    dest: "/tmp/{{ item.name }}-user-data"
-    mode: '0644'
-  loop: "{{ libvirt_vms }}"
-
-- name: Create cloud-init ISO images
-  ansible.builtin.command: >
-    genisoimage -output {{ libvirt_image_dir }}/{{ item.name }}-cidata.iso
-    -volid cidata -joliet -rock
-    /tmp/{{ item.name }}-user-data /tmp/{{ item.name }}-meta-data
-  become: true
-  loop: "{{ libvirt_vms }}"
-  changed_when: true
-
-- name: Set permissions on cloud-init ISOs
-  ansible.builtin.file:
-    path: "{{ libvirt_image_dir }}/{{ item.name }}-cidata.iso"
-    owner: qemu
-    group: qemu
-    mode: '0600'
-  become: true
-  loop: "{{ libvirt_vms }}"
-
-- name: Get libvirt default network configuration
-  community.libvirt.virt_net:
-    command: get_xml
-    name: "{{ libvirt_network }}"
-  register: libvirt_default_network_xml
-
-- name: Parse network XML
-  community.general.xml:
-    xmlstring: "{{ libvirt_default_network_xml.get_xml }}"
-    xpath: /network/ip/dhcp/host[@mac='{{ item.mac }}']
-    count: true
-  loop: "{{ libvirt_vms }}"
-  register: libvirt_dhcp_host_check
-
-- name: Stop libvirt default network
-  community.libvirt.virt_net:
-    name: "{{ libvirt_network }}"
-    state: inactive
-  when: libvirt_dhcp_host_check.results | selectattr('count', 'equalto', 0) | list | length > 0
-
-- name: Add static DHCP entries to default network
-  ansible.builtin.command: >
-    virsh net-update {{ libvirt_network }} add ip-dhcp-host
-    "<host mac='{{ item.mac }}' name='{{ item.hostname }}' ip='{{ item.ip }}'/>"
-    --live --config
-  loop: "{{ libvirt_vms }}"
-  when: libvirt_dhcp_host_check.results[loop.index0].count == 0
-  register: libvirt_dhcp_update
-  changed_when: libvirt_dhcp_update.rc == 0
-  failed_when: libvirt_dhcp_update.rc != 0 and 'already exists' not in libvirt_dhcp_update.stderr
-
-- name: Start libvirt default network
-  community.libvirt.virt_net:
-    name: "{{ libvirt_network }}"
-    state: active
-  when: libvirt_dhcp_host_check.results | selectattr('count', 'equalto', 0) | list | length > 0
-
-- name: Create VMs using virt-install
-  ansible.builtin.command: >
-    virt-install
-    --name {{ item.name }}
-    --memory {{ item.memory }}
-    --vcpus {{ item.vcpus }}
-    --disk path={{ libvirt_image_dir }}/{{ item.name }}.qcow2,format=qcow2,bus=virtio
-    --disk path={{ libvirt_image_dir }}/{{ item.name }}-cidata.iso,device=cdrom
-    --os-variant fedora-unknown
-    --network network={{ libvirt_network }},mac={{ item.mac }}
-    --graphics {{ item.graphics | default('spice,listen=127.0.0.1') }}
-    --console pty,target_type=serial
-    --noautoconsole
-    --import
-  loop: "{{ libvirt_vms }}"
-  become: true
-  changed_when: true
-
-- name: Wait for VMs to be running
-  community.libvirt.virt:
-    name: "{{ item.name }}"
-    command: status
-  loop: "{{ libvirt_vms }}"
-  register: libvirt_vm_status
-  until: libvirt_vm_status.status == "running"
-  retries: 10
-  delay: 5
-
-- name: Wait for SSH to be available on VMs
-  ansible.builtin.wait_for:
-    host: "{{ item.ip }}"
-    port: 22
-    delay: 10
-    timeout: 300
-  loop: "{{ libvirt_vms }}"
-
-- name: Wait additional time for cloud-init to complete  # noqa: no-handler
-  ansible.builtin.pause:
-    seconds: 30
-  when: libvirt_download_result is changed
-
-- name: Test SSH connectivity to cloud-user
-  ansible.builtin.command: >
-    ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null
-    -i {{ libvirt_ssh_key_path }}
-    {{ libvirt_cloud_user }}@{{ item.ip }}
-    'echo SSH connection successful'
-  loop: "{{ libvirt_vms }}"
-  register: libvirt_ssh_test
-  until: libvirt_ssh_test.rc == 0
-  retries: 5
-  delay: 10
-  changed_when: false
-
-- name: Verify ansible user exists and SSH access works
-  ansible.builtin.command: >
-    ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null
-    -i {{ libvirt_ssh_key_path }}
-    {{ libvirt_ansible_user }}@{{ item.ip }}
-    'echo Ansible user ready'
-  loop: "{{ libvirt_vms }}"
-  register: libvirt_ansible_user_test
-  until: libvirt_ansible_user_test.rc == 0
-  retries: 5
-  delay: 10
-  changed_when: false
-
-- name: Update /etc/hosts with VM entries
-  ansible.builtin.lineinfile:
-    path: /etc/hosts
-    regexp: ".*{{ item.hostname }}$"
-    line: "{{ item.ip }} {{ item.hostname }} {{ item.name }}"
-    state: present
-  become: true
-  loop: "{{ libvirt_vms }}"
-
-- name: Display completion message
-  ansible.builtin.debug:
-    msg: |
-      ========================================
-      Lab environment bootstrap completed!
-      ========================================
-
-      VMs created:
-      {% for vm in libvirt_vms %}
-      - {{ vm.name }}: {{ vm.ip }} ({{ vm.hostname }})
-      {% endfor %}
-
-      SSH key: {{ libvirt_ssh_key_path }}
-
-      Next steps:
-      1. Test connectivity: ansible -i inventory demoservers -m ping
-      2. Run provision playbook: ansible-playbook provision-vms.yml
-      3. Run site playbook: ansible-playbook site.yml
-
-      To access VMs:
-      ssh -i {{ libvirt_ssh_key_path }} ansible@labhost1.local
-      ssh -i {{ libvirt_ssh_key_path }} ansible@labhost2.local
-      ssh -i {{ libvirt_ssh_key_path }} ansible@labhost3.local
+    - name: Check iso network forwarding configuration
+      community.general.xml:
+        xmlstring: "{{ libvirt_iso_network_xml.get_xml }}"
+        xpath: /network/forward
+        count: true
+      register: libvirt_iso_network_forward_check
+          when: libvirt_iso_network in libvirt_existing_networks.list_nets
+    
+    - name: Warn if iso network has incorrect configuration
+      ansible.builtin.debug:
+        msg: |
+          WARNING: Existing iso network has configuration that may impact the demo:
+          {% if libvirt_iso_network_ip_check.matches is defined %}
+          {% set ip_attrs = libvirt_iso_network_ip_check.matches[0].ip %}
+          {% if ip_attrs.address | default('') != '10.10.5.1' or ip_attrs.netmask | default('') != '255.255.255.0' %}
+          - Network subnet is {{ ip_attrs.address | default('unknown') }}/{{ ip_attrs.netmask | default('unknown') }} (expected 10.10.5.1/255.255.255.0)
+          {% endif %}
+          {% endif %}
+          {% if libvirt_iso_network_forward_check.count | default(0) > 0 %}
+          - Network has forwarding/NAT enabled (expected: isolated network with no forwarding)
+          {% endif %}
+          Consider removing and recreating: virsh -c qemu:///system net-destroy {{ libvirt_iso_network }} && virsh -c qemu:///system net-undefine {{ libvirt_iso_network }}
+      when:
+        - libvirt_iso_network in libvirt_existing_networks.list_nets
+        - >
+          (libvirt_iso_network_ip_check.matches is defined and
+           (libvirt_iso_network_ip_check.matches[0].ip.address | default('') != '10.10.5.1' or
+            libvirt_iso_network_ip_check.matches[0].ip.netmask | default('') != '255.255.255.0')) or
+          (libvirt_iso_network_forward_check.count | default(0) > 0)
+    
+    - name: Create iso network XML definition
+      ansible.builtin.copy:
+        content: |
+          <network>
+            <name>{{ libvirt_iso_network }}</name>
+            <bridge name="{{ libvirt_iso_network_bridge }}" stp="on" delay="0"/>
+            <ip address="10.10.5.1" netmask="255.255.255.0">
+            </ip>
+          </network>
+        dest: "/tmp/{{ libvirt_iso_network }}-network.xml"
+        mode: '0644'
+      when: libvirt_iso_network not in libvirt_existing_networks.list_nets
+    
+    - name: Define iso network
+      ansible.builtin.command:
+        cmd: virsh -c qemu:///system net-define /tmp/{{ libvirt_iso_network }}-network.xml
+      when: libvirt_iso_network not in libvirt_existing_networks.list_nets
+      changed_when: true
+    
+    - name: Set iso network to autostart
+      ansible.builtin.command:
+        cmd: virsh -c qemu:///system net-autostart {{ libvirt_iso_network }}
+      when: libvirt_iso_network not in libvirt_existing_networks.list_nets
+      changed_when: true
+    
+    - name: Start iso network
+      community.libvirt.virt_net:
+        name: "{{ libvirt_iso_network }}"
+        state: active
+    
+    - name: Ensure image directory exists
+      ansible.builtin.file:
+        path: "{{ libvirt_image_dir }}"
+        state: directory
+        mode: '0755'
+      become: true
+    
+    - name: Check if base image already exists
+      ansible.builtin.stat:
+        path: "{{ libvirt_image_dir }}/{{ libvirt_base_image_name }}"
+      register: libvirt_base_image_stat
+    
+    - name: Download Fedora Cloud image
+      ansible.builtin.get_url:
+        url: "{{ libvirt_fedora_cloud_image_url }}"
+        dest: "{{ libvirt_image_dir }}/{{ libvirt_base_image_name }}"
+        mode: '0644'
+      become: true
+      when: not libvirt_base_image_stat.stat.exists
+      register: libvirt_download_result
+    
+    - name: Display download status  # noqa: no-handler
+      ansible.builtin.debug:
+        msg: "Fedora Cloud image downloaded successfully"
+      when: libvirt_download_result is changed
+    
+    - name: Check existing VMs
+      community.libvirt.virt:
+        command: list_vms
+      register: libvirt_existing_vms
+    
+    - name: Stop and destroy existing lab VMs
+      community.libvirt.virt:
+        name: "{{ item.name }}"
+        state: destroyed
+      loop: "{{ libvirt_vms }}"
+      when: item.name in libvirt_existing_vms.list_vms
+      register: libvirt_destroy_result
+      failed_when: libvirt_destroy_result.failed and 'not found' not in (libvirt_destroy_result.msg | default(''))
+    
+    - name: Undefine existing lab VMs
+      community.libvirt.virt:
+        name: "{{ item.name }}"
+        command: undefine
+      loop: "{{ libvirt_vms }}"
+      when: item.name in libvirt_existing_vms.list_vms
+      register: libvirt_undefine_result
+      failed_when: libvirt_undefine_result.failed and 'not found' not in (libvirt_undefine_result.msg | default(''))
+    
+    - name: Remove old VM disk images
+      ansible.builtin.file:
+        path: "{{ libvirt_image_dir }}/{{ item.name }}.qcow2"
+        state: absent
+      become: true
+      loop: "{{ libvirt_vms }}"
+    
+    - name: Create VM disk images with backing store
+      ansible.builtin.command: >
+        qemu-img create -F qcow2
+        -b {{ libvirt_image_dir }}/{{ libvirt_base_image_name }}
+        -f qcow2
+        {{ libvirt_image_dir }}/{{ item.name }}.qcow2
+        20G
+      become: true
+      loop: "{{ libvirt_vms }}"
+      changed_when: true
+    
+    - name: Set permissions on VM disk images
+      ansible.builtin.file:
+        path: "{{ libvirt_image_dir }}/{{ item.name }}.qcow2"
+        owner: qemu
+        group: qemu
+        mode: '0600'
+      become: true
+      loop: "{{ libvirt_vms }}"
+    
+    - name: Create cloud-init meta-data files
+      ansible.builtin.copy:
+        content: |
+          instance-id: {{ item.name }}
+          local-hostname: {{ item.hostname }}
+        dest: "/tmp/{{ item.name }}-meta-data"
+        mode: '0644'
+      loop: "{{ libvirt_vms }}"
+    
+    - name: Create cloud-init user-data files  # noqa: no-handler
+      ansible.builtin.copy:
+        content: |
+          #cloud-config
+          hostname: {{ item.hostname }}
+          fqdn: {{ item.hostname }}
+          manage_etc_hosts: true
+    
+          users:
+            - name: {{ libvirt_cloud_user }}
+              sudo: ALL=(ALL) NOPASSWD:ALL
+              groups: wheel
+              shell: /bin/bash
+              ssh_authorized_keys:
+                - {{ bootstrap_workstation_ssh_public_key_content }}
+            - name: {{ libvirt_ansible_user }}
+              sudo: ALL=(ALL) NOPASSWD:ALL
+              groups: wheel
+              shell: /bin/bash
+              ssh_authorized_keys:
+                - {{ bootstrap_workstation_ssh_public_key_content }}
+    
+          # Change default target to multi-user (no GUI)
+          bootcmd:
+            - systemctl set-default multi-user.target
+    
+          # Ensure SSH is enabled
+          runcmd:
+            - systemctl enable sshd
+            - systemctl start sshd
+    
+          # Grow root filesystem
+          growpart:
+            mode: auto
+            devices: ['/']
+    
+          packages:
+            - qemu-guest-agent
+    
+          package_update: true
+          package_upgrade: false
+    
+          final_message: "Cloud-init completed. System is ready."
+        dest: "/tmp/{{ item.name }}-user-data"
+        mode: '0644'
+      loop: "{{ libvirt_vms }}"
+    
+    - name: Create cloud-init ISO images
+      ansible.builtin.command: >
+        genisoimage -output {{ libvirt_image_dir }}/{{ item.name }}-cidata.iso
+        -volid cidata -joliet -rock
+        /tmp/{{ item.name }}-user-data /tmp/{{ item.name }}-meta-data
+      become: true
+      loop: "{{ libvirt_vms }}"
+      changed_when: true
+    
+    - name: Set permissions on cloud-init ISOs
+      ansible.builtin.file:
+        path: "{{ libvirt_image_dir }}/{{ item.name }}-cidata.iso"
+        owner: qemu
+        group: qemu
+        mode: '0600'
+      become: true
+      loop: "{{ libvirt_vms }}"
+    
+    - name: Get libvirt default network configuration
+      community.libvirt.virt_net:
+        command: get_xml
+        name: "{{ libvirt_network }}"
+      register: libvirt_default_network_xml
+    
+    - name: Parse network XML
+      community.general.xml:
+        xmlstring: "{{ libvirt_default_network_xml.get_xml }}"
+        xpath: /network/ip/dhcp/host[@mac='{{ item.mac }}']
+        count: true
+      loop: "{{ libvirt_vms }}"
+      register: libvirt_dhcp_host_check
+    
+    - name: Stop libvirt default network
+      community.libvirt.virt_net:
+        name: "{{ libvirt_network }}"
+        state: inactive
+      when: libvirt_dhcp_host_check.results | selectattr('count', 'equalto', 0) | list | length > 0
+    
+    - name: Add static DHCP entries to default network
+      ansible.builtin.command: >
+        virsh -c qemu:///system net-update {{ libvirt_network }} add ip-dhcp-host
+        "<host mac='{{ item.mac }}' name='{{ item.hostname }}' ip='{{ item.ip }}'/>"
+        --live --config
+      loop: "{{ libvirt_vms }}"
+      when: libvirt_dhcp_host_check.results[loop.index0].count == 0
+      register: libvirt_dhcp_update
+      changed_when: libvirt_dhcp_update.rc == 0
+      failed_when: libvirt_dhcp_update.rc != 0 and 'already exists' not in libvirt_dhcp_update.stderr
+    
+    - name: Start libvirt default network
+      community.libvirt.virt_net:
+        name: "{{ libvirt_network }}"
+        state: active
+      when: libvirt_dhcp_host_check.results | selectattr('count', 'equalto', 0) | list | length > 0
+    
+    - name: Create VMs using virt-install
+      ansible.builtin.command: >
+        virt-install
+        --name {{ item.name }}
+        --memory {{ item.memory }}
+        --vcpus {{ item.vcpus }}
+        --disk path={{ libvirt_image_dir }}/{{ item.name }}.qcow2,format=qcow2,bus=virtio
+        --disk path={{ libvirt_image_dir }}/{{ item.name }}-cidata.iso,device=cdrom
+        --os-variant fedora-unknown
+        --network network={{ libvirt_network }},mac={{ item.mac }}
+        --graphics {{ item.graphics | default('spice,listen=127.0.0.1') }}
+        --console pty,target_type=serial
+        --noautoconsole
+        --import
+      loop: "{{ libvirt_vms }}"
+      become: true
+      changed_when: true
+    
+    - name: Wait for VMs to be running
+      community.libvirt.virt:
+        name: "{{ item.name }}"
+        command: status
+      loop: "{{ libvirt_vms }}"
+      register: libvirt_vm_status
+      until: libvirt_vm_status.status == "running"
+      retries: 10
+      delay: 5
+    
+    - name: Wait for SSH to be available on VMs
+      ansible.builtin.wait_for:
+        host: "{{ item.ip }}"
+        port: 22
+        delay: 10
+        timeout: 300
+      loop: "{{ libvirt_vms }}"
+    
+    - name: Wait additional time for cloud-init to complete  # noqa: no-handler
+      ansible.builtin.pause:
+        seconds: 30
+      when: libvirt_download_result is changed
+    
+    - name: Test SSH connectivity to cloud-user
+      ansible.builtin.command: >
+        ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null
+        -i {{ libvirt_ssh_key_path }}
+        {{ libvirt_cloud_user }}@{{ item.ip }}
+        'echo SSH connection successful'
+      loop: "{{ libvirt_vms }}"
+      register: libvirt_ssh_test
+      until: libvirt_ssh_test.rc == 0
+      retries: 5
+      delay: 10
+      changed_when: false
+    
+    - name: Verify ansible user exists and SSH access works
+      ansible.builtin.command: >
+        ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null
+        -i {{ libvirt_ssh_key_path }}
+        {{ libvirt_ansible_user }}@{{ item.ip }}
+        'echo Ansible user ready'
+      loop: "{{ libvirt_vms }}"
+      register: libvirt_ansible_user_test
+      until: libvirt_ansible_user_test.rc == 0
+      retries: 5
+      delay: 10
+      changed_when: false
+    
+    - name: Update /etc/hosts with VM entries
+      ansible.builtin.lineinfile:
+        path: /etc/hosts
+        regexp: ".*{{ item.hostname }}$"
+        line: "{{ item.ip }} {{ item.hostname }} {{ item.name }}"
+        state: present
+      become: true
+      loop: "{{ libvirt_vms }}"
+    
+    - name: Display completion message
+      ansible.builtin.debug:
+        msg: |
+          ========================================
+          Lab environment bootstrap completed!
+          ========================================
+    
+          VMs created:
+          {% for vm in libvirt_vms %}
+          - {{ vm.name }}: {{ vm.ip }} ({{ vm.hostname }})
+          {% endfor %}
+    
+          SSH key: {{ libvirt_ssh_key_path }}
+    
+          Next steps:
+          1. Test connectivity: ansible -i inventory demoservers -m ping
+          2. Run provision playbook: ansible-playbook provision-vms.yml
+          3. Run site playbook: ansible-playbook site.yml
+    
+          To access VMs:
+          ssh -i {{ libvirt_ssh_key_path }} ansible@labhost1.local
+          ssh -i {{ libvirt_ssh_key_path }} ansible@labhost2.local
+          ssh -i {{ libvirt_ssh_key_path }} ansible@labhost3.local

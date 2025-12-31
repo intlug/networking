@@ -59,7 +59,7 @@ virsh list --all
 Ensure the default network is active:
 
 ```bash
-virsh net-list --all
+virsh -c qemu:///system net-list --all
 ```
 
 If not active:
