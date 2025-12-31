@@ -65,7 +65,7 @@
           {% if libvirt_iso_network_forward_check.count | default(0) > 0 %}
           - Network has forwarding/NAT enabled (expected: isolated network with no forwarding)
           {% endif %}
-          Consider removing and recreating: virsh -c qemu:///system net-destroy {{ libvirt_iso_network }} && virsh -c qemu:///system net-undefine {{ libvirt_iso_network }}
+          Consider removing and recreating: virsh -c qemu:///system net-destroy {{ libvirt_iso_network }} && virsh -c qemu:///system net-undefine {{ libvirt_iso_network }}  # noqa: yaml[line-length]
       when:
         - libvirt_iso_network in libvirt_existing_networks.list_nets
         - >
@@ -113,15 +113,18 @@
 
     - name: Download Fedora Cloud CHECKSUM file
       ansible.builtin.get_url:
-        url: "https://download.fedoraproject.org/pub/fedora/linux/releases/{{ libvirt_fedora_version }}/Cloud/x86_64/images/Fedora-Cloud-{{ libvirt_fedora_version }}-1.6-x86_64-CHECKSUM"
+        url: "https://download.fedoraproject.org/pub/fedora/linux/releases/{{ libvirt_fedora_version }}/Cloud/x86_64/images/Fedora-Cloud-{{ libvirt_fedora_version }}-1.6-x86_64-CHECKSUM"  # noqa: yaml[line-length]
         dest: "/tmp/fedora-{{ libvirt_fedora_version }}-cloud-checksum"
         mode: '0644'
 
     - name: Extract SHA256 checksum for qcow2 image
-      ansible.builtin.shell: >
-        grep 'SHA256.*{{ libvirt_base_image_name }}' 
-        /tmp/fedora-{{ libvirt_fedora_version }}-cloud-checksum |
-        sed 's/.*= //'
+      ansible.builtin.shell:
+        cmd: |
+          set -o pipefail
+          grep 'SHA256.*{{ libvirt_base_image_name }}'
+          /tmp/fedora-{{ libvirt_fedora_version }}-cloud-checksum |
+          sed 's/.*= //'
+        executable: /bin/bash
       register: libvirt_expected_checksum
       changed_when: false
 
