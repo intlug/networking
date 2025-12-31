@@ -2,7 +2,7 @@
 # Managed by Ansible - do not edit manually
 
 # Listen only on isolated interface
-interface=eth1
+interface={{ network_config_isolated_interface }}
 bind-interfaces
 
 # DHCP configuration
