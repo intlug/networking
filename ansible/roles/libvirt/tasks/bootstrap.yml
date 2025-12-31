@@ -121,9 +121,7 @@
       ansible.builtin.shell:
         cmd: |
           set -o pipefail
-          grep 'SHA256.*{{ libvirt_base_image_name }}'
-          /tmp/fedora-{{ libvirt_fedora_version }}-cloud-checksum |
-          sed 's/.*= //'
+          grep 'SHA256.*{{ libvirt_base_image_name }}' /tmp/fedora-{{ libvirt_fedora_version }}-cloud-checksum | sed 's/.*= //'
         executable: /bin/bash
       register: libvirt_expected_checksum
       changed_when: false
