@@ -8,7 +8,6 @@
       - "@standard"
       - "@admin-tools"
       - "@system-tools"
-      - "@"
       - git
       - vim
       - nano
