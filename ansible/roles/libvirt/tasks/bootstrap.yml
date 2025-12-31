@@ -111,53 +111,18 @@
         mode: '0755'
       become: true
     
-    - name: Download Fedora Cloud image CHECKSUM file
-      ansible.builtin.get_url:
-        url: "https://download.fedoraproject.org/pub/fedora/linux/releases/{{ libvirt_fedora_version }}/Cloud/x86_64/images/Fedora-Cloud-{{ libvirt_fedora_version }}-1.6-x86_64-CHECKSUM"
-        dest: "/tmp/fedora-{{ libvirt_fedora_version }}-cloud-checksum"
-        mode: '0644'
-    
-    - name: Extract SHA256 checksum for qcow2 image
-      ansible.builtin.shell: >
-        grep 'Fedora-Cloud-Base-Generic-{{ libvirt_fedora_version }}-1.6.x86_64.qcow2' 
-        /tmp/fedora-{{ libvirt_fedora_version }}-cloud-checksum | 
-        awk '{print $4}'
-      register: libvirt_expected_checksum
-      changed_when: false
-    
-    - name: Check if base image already exists
-      ansible.builtin.stat:
-        path: "{{ libvirt_image_dir }}/{{ libvirt_base_image_name }}"
-        checksum_algorithm: sha256
-        get_checksum: true
-      register: libvirt_base_image_stat
-    
-    - name: Determine if download is needed
-      ansible.builtin.set_fact:
-        libvirt_download_needed: >-
-          {{
-            not libvirt_base_image_stat.stat.exists or
-            libvirt_base_image_stat.stat.checksum != libvirt_expected_checksum.stdout
-          }}
-    
-    - name: Display image status
-      ansible.builtin.debug:
-        msg: "{{ 'Image exists with valid checksum, skipping download' if not libvirt_download_needed else 'Image missing or checksum mismatch, will download' }}"
-    
-    - name: Download Fedora Cloud image
+    - name: Download Fedora Cloud image with checksum validation
       ansible.builtin.get_url:
         url: "{{ libvirt_fedora_cloud_image_url }}"
         dest: "{{ libvirt_image_dir }}/{{ libvirt_base_image_name }}"
-        checksum: "sha256:{{ libvirt_expected_checksum.stdout }}"
+        checksum: "sha256:https://download.fedoraproject.org/pub/fedora/linux/releases/{{ libvirt_fedora_version }}/Cloud/x86_64/images/Fedora-Cloud-{{ libvirt_fedora_version }}-1.6-x86_64-CHECKSUM"
         mode: '0644'
       become: true
-      when: libvirt_download_needed
       register: libvirt_download_result
     
     - name: Display download status  # noqa: no-handler
       ansible.builtin.debug:
-        msg: "Fedora Cloud image downloaded successfully"
-      when: libvirt_download_result is changed
+        msg: "{{ 'Fedora Cloud image downloaded successfully' if libvirt_download_result is changed else 'Image already exists with valid checksum' }}"
     
     - name: Check existing VMs
       community.libvirt.virt:
