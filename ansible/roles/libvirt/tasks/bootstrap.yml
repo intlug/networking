@@ -295,10 +295,10 @@
     - name: Add static DHCP entries to default network
       ansible.builtin.command: >
         virsh -c qemu:///system net-update {{ libvirt_network }} add ip-dhcp-host
-        "<host mac='{{ item.mac }}' name='{{ item.hostname }}' ip='{{ item.ip }}'/>"
+        "<host mac='{{ item.1.mac }}' name='{{ item.1.hostname }}' ip='{{ item.1.ip }}'/>"
         --live --config
-      loop: "{{ libvirt_vms }}"
-      when: libvirt_dhcp_host_check.results[loop.index0].count == 0
+      loop: "{{ libvirt_dhcp_host_check.results | zip(libvirt_vms) | list }}"
+      when: item.0.count == 0
       register: libvirt_dhcp_update
       changed_when: libvirt_dhcp_update.rc == 0
       failed_when: libvirt_dhcp_update.rc != 0 and 'already exists' not in libvirt_dhcp_update.stderr
