@@ -279,7 +279,7 @@
         name: "{{ libvirt_network }}"
       register: libvirt_default_network_xml
 
-    - name: Parse network XML
+    - name: Parse network XML for existing DHCP entries
       community.general.xml:
         xmlstring: "{{ libvirt_default_network_xml.get_xml }}"
         xpath: /network/ip/dhcp/host[@mac='{{ item.mac }}']
@@ -292,16 +292,26 @@
         name: "{{ libvirt_network }}"
         state: active
 
+    - name: Remove existing DHCP entries if they exist
+      ansible.builtin.command: >
+        virsh -c qemu:///system net-update {{ libvirt_network }} delete ip-dhcp-host
+        "<host mac='{{ item.1.mac }}'/>"
+        --live --config
+      loop: "{{ libvirt_dhcp_host_check.results | zip(libvirt_vms) | list }}"
+      when: item.0.count > 0
+      register: libvirt_dhcp_delete
+      changed_when: libvirt_dhcp_delete.rc == 0
+      failed_when: libvirt_dhcp_delete.rc != 0 and 'not found' not in libvirt_dhcp_delete.stderr
+
     - name: Add static DHCP entries to default network
       ansible.builtin.command: >
         virsh -c qemu:///system net-update {{ libvirt_network }} add ip-dhcp-host
-        "<host mac='{{ item.1.mac }}' name='{{ item.1.hostname }}' ip='{{ item.1.ip }}'/>"
+        "<host mac='{{ item.mac }}' name='{{ item.hostname }}' ip='{{ item.ip }}'/>"
         --live --config
-      loop: "{{ libvirt_dhcp_host_check.results | zip(libvirt_vms) | list }}"
-      when: item.0.count == 0
-      register: libvirt_dhcp_update
-      changed_when: libvirt_dhcp_update.rc == 0
-      failed_when: libvirt_dhcp_update.rc != 0 and 'already exists' not in libvirt_dhcp_update.stderr
+      loop: "{{ libvirt_vms }}"
+      register: libvirt_dhcp_add
+      changed_when: libvirt_dhcp_add.rc == 0
+      failed_when: libvirt_dhcp_add.rc != 0 and 'already exists' not in libvirt_dhcp_add.stderr
 
     - name: Create VMs using virt-install
       ansible.builtin.command: >
