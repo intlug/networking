@@ -13,6 +13,10 @@
     gather_subset:
       - network
 
+- name: Display gathered network facts
+  ansible.builtin.debug:
+    var: ansible_interfaces
+
 - name: Derive gateway interface facts
   ansible.builtin.set_fact:
     nat_gateway_public_interface: >-

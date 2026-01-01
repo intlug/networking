@@ -9,17 +9,21 @@
     - monitoring
     - network_tools
 
-- name: Configure networking on all hosts
-  hosts: demoservers
+- name: Configure gateway host (labhost1) early
+  hosts: gateway
+  serial: 1
+  roles:
+    - base_packages
+    - network_tools
+    - network_config
+    - dnsmasq
+    - nat_gateway
+    - nginx
+
+- name: Configure networking on remaining demoservers
+  hosts: "demoservers:!gateway"
   roles:
     - network_config
-
-- name: Configure gateway host (labhost1)
-  hosts: gateway
-  roles:
-    - dnsmasq
-    - nginx
-    - nat_gateway
 
 - name: Configure GUI host (labhost3)
   hosts: guihost
