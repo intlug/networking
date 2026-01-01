@@ -41,6 +41,7 @@
     mode: '0644'
     validate: 'nginx -t -c %s'
   notify: Restart nginx
+  when: false  # Disable upstream config for now
 
 - name: Deploy proxy configuration
   ansible.builtin.template:
