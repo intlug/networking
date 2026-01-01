@@ -17,12 +17,16 @@
   ansible.builtin.debug:
     var: ansible_interfaces
 
+- name: Build non-loopback interface list for gateway # noqa: var-naming
+  ansible.builtin.set_fact:
+    _nat_ifaces: "{{ (ansible_interfaces | default([]) | reject('equalto', 'lo') | list) }}"
+  when: ansible_interfaces is defined
+
 - name: Derive gateway interface facts  # noqa: var-naming
   ansible.builtin.set_fact:
-    # Build a list of non-loopback interfaces and pick by position
-    _nat_ifaces: "{{ (ansible_interfaces | default([]) | reject('equalto', 'lo') | list) }}"
     nat_gateway_public_interface: "{{ (_nat_ifaces[0] if (_nat_ifaces | length) > 0 else '') }}"
     nat_gateway_isolated_interface: "{{ (_nat_ifaces[1] if (_nat_ifaces | length) > 1 else '') }}"
+  when: _nat_ifaces is defined
 
 - name: Display derived gateway interface facts
   ansible.builtin.debug:
