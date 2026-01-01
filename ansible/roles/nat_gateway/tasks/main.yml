@@ -1,6 +1,3 @@
----
-# Configure NAT gateway - setup but disabled for live demo
-
 - name: Configure sysctl for IP forwarding (but keep disabled)
   ansible.posix.sysctl:
     name: net.ipv4.ip_forward
@@ -8,6 +5,34 @@
     state: present
     sysctl_file: /etc/sysctl.d/99-ip-forward.conf
     reload: true
+
+
+# Gather network facts and derive interface names for gateway
+- name: Gather network facts
+  ansible.builtin.setup:
+    gather_subset:
+      - network
+
+- name: Derive gateway interface facts
+  ansible.builtin.set_fact:
+    nat_gateway_public_interface: >-
+      {{
+        ansible_interfaces
+        | map('regex_replace', '^(.*)$', 'ansible_\1')
+        | map('extract', hostvars[inventory_hostname])
+        | selectattr('ipv4', 'defined')
+        | selectattr('ipv4.address', 'defined')
+        | selectattr('ipv4.address', 'match', '^' ~ public_network_prefix ~ '\\.')
+        | map(attribute='device')
+        | first
+      }}
+    nat_gateway_isolated_interface: >-
+      {{
+        ansible_interfaces
+        | difference(['lo', network_config_public_interface])
+        | select('match', '^(en|eth)')
+        | first
+      }}
 
 - name: Create script to enable NAT for demo
   ansible.builtin.copy:
@@ -49,14 +74,14 @@
 - name: Assign public interface to public zone
   ansible.posix.firewalld:
     zone: public
-    interface: "{{ public_interface }}"
+    interface: "{{ nat_gateway_public_interface }}"
     permanent: true
     state: enabled
 
 - name: Assign isolated interface to internal zone
   ansible.posix.firewalld:
     zone: internal
-    interface: "{{ isolated_interface }}"
+    interface: "{{ nat_gateway_isolated_interface }}"
     permanent: true
     state: enabled
 
