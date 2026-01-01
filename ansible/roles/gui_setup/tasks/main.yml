@@ -4,10 +4,10 @@
 - name: Install GNOME Desktop environment
   ansible.builtin.dnf:
     name:
+      - '@base-graphical'
       - '@gnome-desktop'
       - gnome-tweaks
-      - '@graphical-management-tools'
-      - '@firefox'
+      - '@graphical-internet'
     state: present
 
 - name: Install additional GUI network tools
