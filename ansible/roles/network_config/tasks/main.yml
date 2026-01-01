@@ -54,6 +54,33 @@
     state: enabled
   when: inventory_hostname == 'labhost1.local'
 
+# Ensure firewall zone membership and services are applied after interface is up (labhost1)
+- name: Assign isolated interface to isolated zone (labhost1)
+  ansible.posix.firewalld:
+    zone: "{{ isolated_zone }}"
+    interface: "{{ network_config_isolated_interface }}"
+    permanent: true
+    state: enabled
+  when: inventory_hostname == 'labhost1.local'
+
+- name: Ensure DNS and DHCP services enabled in isolated zone (labhost1)
+  ansible.posix.firewalld:
+    zone: "{{ isolated_zone }}"
+    service: "{{ item }}"
+    permanent: true
+    state: enabled
+  loop:
+    - dns
+    - dhcp
+    - ssh
+  when: inventory_hostname == 'labhost1.local'
+
+- name: Reload firewalld to apply interface assignment (labhost1)
+  ansible.builtin.command: firewall-cmd --reload
+  become: true
+  changed_when: false
+  when: inventory_hostname == 'labhost1.local'
+
 - name: Configure isolated network interface on labhost2/3 (DHCP)
   community.general.nmcli:
     conn_name: "isolated"
@@ -107,30 +134,3 @@
 - name: Display isolated interface status
   ansible.builtin.debug:
     var: network_config_isolated_interface_status.stdout_lines
-
-# Ensure firewall zone membership and services are applied after interface is up (labhost1)
-- name: Assign isolated interface to isolated zone (labhost1)
-  ansible.posix.firewalld:
-    zone: "{{ isolated_zone }}"
-    interface: "{{ network_config_isolated_interface }}"
-    permanent: true
-    state: enabled
-  when: inventory_hostname == 'labhost1.local'
-
-- name: Ensure DNS and DHCP services enabled in isolated zone (labhost1)
-  ansible.posix.firewalld:
-    zone: "{{ isolated_zone }}"
-    service: "{{ item }}"
-    permanent: true
-    state: enabled
-  loop:
-    - dns
-    - dhcp
-    - ssh
-  when: inventory_hostname == 'labhost1.local'
-
-- name: Reload firewalld to apply interface assignment (labhost1)
-  ansible.builtin.command: firewall-cmd --reload
-  become: true
-  changed_when: false
-  when: inventory_hostname == 'labhost1.local'
