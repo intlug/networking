@@ -12,7 +12,7 @@
   ansible.builtin.dnf:
     name:
       - wireshark
-      - zenmap
+#      - zenmap
       - gnome-nettool
     state: present
 
