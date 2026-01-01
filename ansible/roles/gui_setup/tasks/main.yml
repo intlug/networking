@@ -8,7 +8,9 @@
       - '@gnome-desktop'
       - gnome-tweaks
       - '@graphical-internet'
+      - '@firefox'
     state: present
+
 
 - name: Install additional GUI network tools
   ansible.builtin.dnf:
