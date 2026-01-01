@@ -67,3 +67,10 @@
     ansible_user: "{{ libvirt_ansible_user }}"
     ansible_ssh_private_key_file: "{{ libvirt_ssh_key_path }}"
   changed_when: false
+
+- name: Run xdg-user-dirs-update for the current user
+  ansible.builtin.command: xdg-user-dirs-update
+  args:
+    # Use 'creates' for idempotency: the command runs only if user-dirs.dirs doesn't exist.
+    creates: "{{ ansible_user_dir }}/.config/user-dirs.dirs"
+  become: false # Run as the remote user, not root  

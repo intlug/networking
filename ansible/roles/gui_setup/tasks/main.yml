@@ -6,6 +6,8 @@
     name:
       - '@gnome-desktop'
       - gnome-tweaks
+      - '@graphical-management-tools'
+      - '@firefox'
     state: present
 
 - name: Install additional GUI network tools
