@@ -43,15 +43,8 @@
     ifname: "{{ network_config_isolated_interface }}"
     ip4: "{{ labhost1_isolated_ip }}/24"
     method4: manual
+    zone: "internal"
     state: present
-  when: inventory_hostname == 'labhost1.local'
-
-- name: Set firewall zone for isolated interface on labhost1
-  ansible.posix.firewalld:
-    zone: "{{ isolated_zone }}"
-    interface: "{{ network_config_isolated_interface }}"
-    permanent: true
-    state: enabled
   when: inventory_hostname == 'labhost1.local'
 
 # Ensure firewall zone membership and services are applied after interface is up (labhost1)
