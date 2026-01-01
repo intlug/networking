@@ -17,26 +17,18 @@
   ansible.builtin.debug:
     var: ansible_interfaces
 
-- name: Derive gateway interface facts
+- name: Derive gateway interface facts  # noqa: var-naming
   ansible.builtin.set_fact:
-    nat_gateway_public_interface: >-
-      {{
-        ansible_interfaces
-        | map('regex_replace', '^(.*)$', 'ansible_\1')
-        | map('extract', hostvars[inventory_hostname])
-        | selectattr('ipv4', 'defined')
-        | selectattr('ipv4.address', 'defined')
-        | selectattr('ipv4.address', 'match', '^' ~ public_network_prefix ~ '\\.')
-        | map(attribute='device')
-        | first
-      }}
-    nat_gateway_isolated_interface: >-
-      {{
-        ansible_interfaces
-        | difference(['lo', nat_gateway_public_interface])
-        | select('match', '^(en|eth)')
-        | first
-      }}
+    # Build a list of non-loopback interfaces and pick by position
+    _nat_ifaces: "{{ (ansible_interfaces | default([]) | reject('equalto', 'lo') | list) }}"
+    nat_gateway_public_interface: "{{ (_nat_ifaces[0] if (_nat_ifaces | length) > 0 else '') }}"
+    nat_gateway_isolated_interface: "{{ (_nat_ifaces[1] if (_nat_ifaces | length) > 1 else '') }}"
+
+- name: Display derived gateway interface facts
+  ansible.builtin.debug:
+    msg:
+      - "nat_gateway_public_interface={{ nat_gateway_public_interface }}"
+      - "nat_gateway_isolated_interface={{ nat_gateway_isolated_interface }}"
 
 - name: Create script to enable NAT for demo
   ansible.builtin.copy:
