@@ -52,6 +52,7 @@
     mode: '0644'
     validate: 'nginx -t -c %s'
   notify: Restart nginx
+  when: false  # Disable proxy config for now
 
 - name: Add HTTP and proxy services to firewall zones
   ansible.posix.firewalld:
