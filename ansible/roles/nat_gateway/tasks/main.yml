@@ -29,7 +29,7 @@
     nat_gateway_isolated_interface: >-
       {{
         ansible_interfaces
-        | difference(['lo', network_config_public_interface])
+        | difference(['lo', nat_gateway_public_interface])
         | select('match', '^(en|eth)')
         | first
       }}
