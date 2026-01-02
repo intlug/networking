@@ -4,8 +4,9 @@ theme: gaia
 class: invert
 paginate: true
 header: 'Linux Networking - INTLUG'
-footer: 'January 2026'
+footer: 'January 2026 - https://github.com/intlug/networking.git'
 transition: cube 1s
+size: 16:9
 ---
 
 <style>
@@ -188,11 +189,14 @@ Untangle the Gordian Knot of Linux networking! This is an introductory session -
 
 ---
 
-<!-- _class: lead invert -->
+<!-- 
+ _class: lead invert 
+-->
 
 # Part 1: Networking Foundations
 
 ---
+<!-- _header: 'Linux Networking | Networking Foundations '-->
 
 ## Questions We'll Answer
 
@@ -218,6 +222,8 @@ Untangle the Gordian Knot of Linux networking! This is an introductory session -
 }
 </style>
 
+<!-- _header: 'Linux Networking | Networking Foundations '-->
+
 ## The OSI Model & TCP/IP Stack
 
 <div class="columns">
@@ -238,6 +244,8 @@ Untangle the Gordian Knot of Linux networking! This is an introductory session -
 
 ---
 
+<!-- _header: 'Linux Networking | Networking Foundations '-->
+
 ## TCP/IP Stack & OSI Model Mapping
 
 ```
@@ -256,6 +264,7 @@ OSI Layer              TCP/IP Layer
 ```
 
 ---
+<!-- _header: 'Linux Networking | Networking Foundations '-->
 
 ## How Messages Go From Computer to Computer
 
@@ -271,6 +280,8 @@ OSI Layer              TCP/IP Layer
 - **Journey**: App → OS stack → NIC → Wire → Switch/Router → Destination
 
 ---
+
+<!-- _header: 'Linux Networking | Networking Foundations '-->
 
 ## Why "Internet" Was Revolutionary
 
@@ -288,6 +299,8 @@ OSI Layer              TCP/IP Layer
 
 ---
 
+<!-- _header: 'Linux Networking | Networking Foundations '-->
+
 ## Ethernet: The Winner of LAN Standards
 
 - **What is Ethernet?** IEEE 802.3 LAN standard
@@ -303,6 +316,8 @@ OSI Layer              TCP/IP Layer
 
 ---
 
+<!-- _header: 'Linux Networking | Networking Foundations '-->
+
 ## Switches vs Routers (and Why HUBs Died)
 
 - **HUB (L1)**: Broadcasts to all ports, shared bandwidth → **Dead** (inefficient, 1990s)
@@ -316,6 +331,8 @@ OSI Layer              TCP/IP Layer
 - **Key**: Switch = same network | Router = different networks
 
 ---
+
+<!-- _header: 'Linux Networking | Networking Foundations '-->
 
 ## What Constitutes a Local Network?
 
@@ -332,6 +349,8 @@ OSI Layer              TCP/IP Layer
 
 ---
 
+<!-- _header: 'Linux Networking | Networking Foundations '-->
+
 ## IPv4 Addressing Basics
 
 **Why IPv4?** Despite IPv6 existing since 1998, IPv4 still runs most networks.
@@ -345,7 +364,10 @@ OSI Layer              TCP/IP Layer
 - **DNS**: Translates hostnames to IPs (humans ≠ numbers)
 
 ---
+
 <!-- _class: invert ascii -->
+<!-- _header: 'Linux Networking | Networking Foundations '-->
+
 <style scoped>
 section.ascii pre {
   margin: 4em auto 3.5em auto;
@@ -379,6 +401,8 @@ section.ascii pre {
 
 ---
 <!-- _class: ascii invert -->
+<!-- _header: 'Linux Networking | Networking Foundations '-->
+
 <style scoped>
 section.ascii pre {
   margin: 2em auto 3.5em auto;
@@ -404,6 +428,8 @@ section.ascii pre {
 
 ---
 <!-- _class: ascii invert -->
+<!-- _header: 'Linux Networking | Networking Foundations '-->
+
 <style scoped>
 section.ascii pre {
   margin: 1em auto 1em auto;
@@ -437,6 +463,8 @@ IP:       SRC IP:  192.168.1.10         →  DST IP:  10.0.0.5
 
 ---
 <!-- _class: ascii invert -->
+<!-- _header: 'Linux Networking | Networking Foundations '-->
+
 <style scoped>
 section.ascii pre {
   margin: 2.5em auto 3em auto;
@@ -467,6 +495,8 @@ Host A: 192.168.1.10/24  wants to reach  10.0.0.5
 
 ---
 <!-- _class: ascii invert -->
+<!-- _header: 'Linux Networking | Networking Foundations '-->
+
 <style scoped>
 section.ascii pre {
   margin: 2em auto 2em auto;
@@ -493,6 +523,8 @@ Broadcast: 10.0.255.255  |  Hosts/Net: 65534
 
 ---
 
+<!-- _header: 'Linux Networking | Networking Foundations '-->
+
 ## The OSI Model & Linux Networking
 
 | Layer | Name | Linux Components | Purpose |
@@ -508,9 +540,11 @@ Broadcast: 10.0.255.255  |  Hosts/Net: 65534
 ---
 <!-- _class: lead invert -->
 
-# Part 2: Network Configuration on Fedora
+# Part 2: Network Configuration
 
 ---
+
+<!-- _header: 'Linux Networking | Network Configuration '-->
 
 ## NetworkManager: The Modern Approach
 
@@ -526,7 +560,8 @@ Broadcast: 10.0.255.255  |  Hosts/Net: 65534
 - Desktop environment integration
 
 ---
-<!-- class: invert code -->
+<!-- _class: invert code -->
+<!-- _header: 'Linux Networking | Network Configuration '-->
 
 ## nmcli: NetworkManager Command Line
 
@@ -546,7 +581,8 @@ nmcli connection add con-name "MyConnection" type ethernet \
 ```
 
 ---
-<!-- class: invert code -->
+<!-- _class: invert code -->
+<!-- _header: 'Linux Networking | Network Configuration '-->
 
 ## nmcli: Managing Connections
 
@@ -563,25 +599,64 @@ nmcli connection delete MyConnection
 ```
 
 ---
+<!-- _header: 'Linux Networking | Network Configuration '-->
+<style scoped>
+.columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2em;
+}
+.columns > .right {
+  border-left: 1px solid #ccc;
+  padding-left: 1rem
+}
+</style>
 
 ## GUI Network Configuration
+
+<div class="columns">
+<div>
 
 **GNOME Settings:**
 - Settings → Network → Gear icon for advanced options
 
 **nmtui (Text UI):**
-```bash
-nmtui
-```
+
+An simpler too than `nmcli` is `nmtui`
+
 - Terminal-based interface
 - Good for remote systems
 - Simpler than nmcli commands
+</div>
+<div class="right">
+
+![w:250](images/nmtui-main.png)
+![w:250](images/nmtui-edit-connection.png)
+
+</div>
+
 
 ---
+<!-- _header: 'Linux Networking | Network Configuration' -->
 
 ## PolKit & Network Permissions
+<style scoped>
+.columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2em;
+}
+.columns > .right {
+  border-left: 1px solid #ccc;
+  padding-left: 1rem
+}
+section p { font-size: 0.8em }
+</style>
 
-**PolKit** controls network settings access
+<div class="columns">
+<div>
+
+**PolKit** controls access to privileged commands
 
 ```bash
 # Check permissions
@@ -590,19 +665,43 @@ pkaction | grep -i network
 # Common actions:
 # org.freedesktop.NetworkManager.network-control
 # org.freedesktop.NetworkManager.settings.modify.system
-
-# Allow user to manage networks
-sudo usermod -aG wheel username
 ```
+`/etc/polkit-1/rules.d` hold custom policies, ie. giving access to features without the need of sudo. Use `pkexec` to run commands through polkit (instead of sudo).
+
+This is how the GUI allows you to change network parameters without root access.
+
+</div>
+<div>
+
+![w:500](images/polkit-architecture.png)
+
+</div>
+</div>
 
 ---
 <!-- _class: invert lead -->
+<!-- _header: 'Linux Networking | Network Configuration' -->
 
 # Part 3: Essential Networking Tools
 
 ---
+<!-- _header: 'Linux Networking | Essential Networking Tools' -->
+<style scoped>
+.columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2em;
+}
+.columns > .right {
+  border-left: 1px solid #ccc;
+  padding-left: 1rem
+}
+</style>
 
 ## Interface Management Commands
+
+<div class="columns">
+<div>
 
 **View interfaces:**
 ```bash
@@ -610,20 +709,24 @@ ip link show                # All interfaces
 ip addr show                # With IP addresses
 nmcli device status         # NetworkManager view
 ```
-
 **Bring interface up/down:**
 ```bash
 sudo ip link set eth0 up
 sudo ip link set eth0 down
 ```
+</div>
+<div class="right">
 
 **Temporary IP assignment:**
+
 ```bash
 sudo ip addr add 192.168.1.100/24 dev eth0
 sudo ip addr del 192.168.1.100/24 dev eth0
 ```
+</div>
 
 ---
+<!-- _header: 'Linux Networking | Essential Networking Tools '-->
 
 ## Routing Commands
 
@@ -647,8 +750,23 @@ sudo ip route del 10.0.0.0/8
 ```
 
 ---
+<!-- _header: 'Linux Networking | Essential Networking Tools '-->
+<style scoped>
+.columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2em;
+}
+.columns > .right {
+  border-left: 1px solid #ccc;
+  padding-left: 1rem
+}
+</style>
 
 ## Network Troubleshooting Tools
+
+<div class="columns">
+<div>
 
 **Connectivity testing:**
 ```bash
@@ -657,6 +775,8 @@ ping -c 4 google.com        # Test DNS resolution
 traceroute google.com       # Trace packet path
 mtr google.com              # Combined ping/traceroute
 ```
+</div>
+<div class="right">
 
 **DNS troubleshooting:**
 ```bash
@@ -670,8 +790,11 @@ host google.com
 cat /etc/resolv.conf
 resolvectl status
 ```
+</div>
+</div>
 
 ---
+<!-- _header: 'Linux Networking | Essential Networking Tools '-->
 
 ## Network Statistics & Monitoring
 
@@ -691,6 +814,7 @@ iftop                       # Top-like interface monitor
 ```
 
 ---
+<!-- _header: 'Linux Networking | Essential Networking Tools '-->
 
 ## Performance Monitoring Tools
 
@@ -714,6 +838,7 @@ sudo tcpdump -i eth0 -w capture.pcap
 
 ---
 <!-- _class: invert lead -->
+<!-- _header: 'Linux Networking | Essential Networking Tools '-->
 
 # Part 4: Firewall Management
 
@@ -732,6 +857,7 @@ sudo tcpdump -i eth0 -w capture.pcap
 **Remember:** `iptables` made sysadmins cry. `firewalld` is easier!
 
 ---
+<!-- _header: 'Linux Networking | Essential Networking Tools '-->
 
 ## firewalld: Basic Commands
 
@@ -754,6 +880,7 @@ sudo firewall-cmd --reload
 ```
 
 ---
+<!-- _header: 'Linux Networking | Essential Networking Tools '-->
 
 ## firewalld: Zone Management
 
@@ -771,6 +898,7 @@ sudo firewall-cmd --set-default-zone=home
 ```
 
 ---
+<!-- _header: 'Linux Networking | Essential Networking Tools '-->
 
 ## firewalld: Service Management
 
@@ -793,6 +921,7 @@ sudo firewall-cmd --get-services       # All available
 ```
 
 ---
+<!-- _header: 'Linux Networking | Essential Networking Tools '-->
 
 ## firewalld: Port Management
 
@@ -814,6 +943,7 @@ sudo firewall-cmd --reload
 ```
 
 ---
+<!-- _header: 'Linux Networking | Essential Networking Tools '-->
 
 ## firewalld: Rich Rules
 
@@ -839,6 +969,7 @@ sudo firewall-cmd --permanent --add-rich-rule='
 # Part 5: Advanced Topics
 
 ---
+<!-- _header: 'Linux Networking | Advanced Topics '-->
 
 ## Dual-Homed Systems
 
@@ -852,6 +983,7 @@ Two network interfaces: routable (Internet) + non-routable (isolated)
 **Why?** Security through isolation - can't route = can't hack!
 
 ---
+<!-- _header: 'Linux Networking | Advanced Topics '-->
 
 ## Dual-Homed Configuration Example
 
@@ -869,6 +1001,7 @@ nmcli connection add con-name "Internal" type ethernet \
 ```
 
 ---
+<!-- _header: 'Linux Networking | Advanced Topics '-->
 
 ## NAT Configuration
 
@@ -893,6 +1026,7 @@ sudo firewall-cmd --reload
 ```
 
 ---
+<!-- _header: 'Linux Networking | Advanced Topics '-->
 
 ## Routing Between Networks
 
@@ -913,6 +1047,7 @@ ping -c 4 8.8.8.8          # Should work via NAT
 ```
 
 ---
+<!-- _header: 'Linux Networking | Advanced Topics '-->
 
 ## Proxy Server Configuration
 
@@ -928,6 +1063,7 @@ sudo systemctl enable --now squid
 ```
 
 ---
+<!-- _header: 'Linux Networking | Advanced Topics '-->
 
 ## Configuring Clients for Proxy
 
@@ -950,10 +1086,12 @@ wget -e use_proxy=yes -e http_proxy=proxy:3128 http://example.com
 ```
 
 ---
-<!-- class: invert lead -->
-# Part 6: Service Configuration
+<!-- _class: invert lead -->
+
+# Part 6: Examples
 
 ---
+<!-- _header: 'Linux Networking | Examples'-->
 
 ## nginx Web Server
 
@@ -974,6 +1112,7 @@ sudo firewall-cmd --reload
 **Web root:** `/usr/share/nginx/html/`
 
 ---
+<!-- _header: 'Linux Networking | Examples'-->
 
 ## nginx: Reverse Proxy
 
@@ -994,6 +1133,7 @@ server {
 **Use case:** Frontend for backend applications
 
 ---
+<!-- _header: 'Linux Networking | Examples'-->
 
 ## nginx: Load Balancing
 
@@ -1014,6 +1154,7 @@ server {
 ```
 
 ---
+<!-- _header: 'Linux Networking | Examples'-->
 
 ## DNS Server: dnsmasq
 
@@ -1035,8 +1176,23 @@ address=/server1.lab.local/10.10.10.10
 ```
 
 ---
+<!-- _header: 'Linux Networking | Examples'-->
+<style scoped>
+.columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2em;
+}
+.columns > .right {
+  border-left: 1px solid #ccc;
+  padding-left: 1rem
+}
+</style>
 
 ## DHCP Server: dnsmasq
+
+<div class=columns>
+<div>
 
 **DHCP configuration in dnsmasq.conf:**
 ```conf
@@ -1052,18 +1208,23 @@ dhcp-option=6,10.10.10.1
 # Static lease by MAC
 dhcp-host=00:11:22:33:44:55,10.10.10.100
 ```
+</div>
+<div class="right">
 
 **Start service:**
 ```bash
 sudo systemctl enable --now dnsmasq
 ```
+</div>
+</div>
 
 ---
+<!-- _class: lead invert -->
 
 # Part 7: Lab Environment
 
 ---
-
+<!-- header: Linux Networking | Lab Environment -->
 ## Lab Overview
 
 **VM Setup:**
@@ -1074,14 +1235,15 @@ sudo systemctl enable --now dnsmasq
 
 **Network Topology:**
 ```
-Internet → [Gateway VM] → [Internal Network]
-         eth0 eth1         eth0
-         (routable)        (10.10.10.0/24)
-                            ↓
-                     [Internal VMs]
+Internet → [Gateway VM] →   [Internal Network]
+           eth0 eth1         eth0
+           (routable)        (10.10.10.0/24)
+                                   ↓
+                             [Internal VMs]
 ```
 
 ---
+<!-- _header: Linux Networking | Lab Environment -->
 
 ## Hands-On Exercises
 
@@ -1090,6 +1252,10 @@ Internet → [Gateway VM] → [Internal Network]
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 2em;
+}
+.columns > .right {
+  border-left: 1px solid #ccc;
+  padding-left: 1rem
 }
 </style>
 
@@ -1109,7 +1275,7 @@ Internet → [Gateway VM] → [Internal Network]
    - NAT setup & verification
 
 </div>
-<div>
+<div class="right">
 
 4. **Service Deployment**
    - nginx setup & reverse proxy
@@ -1127,6 +1293,7 @@ Internet → [Gateway VM] → [Internal Network]
 </div>
 
 ---
+<!-- _header: Linux Networking | Lab Environment -->
 
 # Key Takeaways
 
@@ -1138,6 +1305,7 @@ Internet → [Gateway VM] → [Internal Network]
 6. **Security** should be considered at every layer
 
 ---
+<!-- _header: Linux Networking | Lab Environment -->
 
 # Resources & References
 
@@ -1179,10 +1347,10 @@ Internet → [Gateway VM] → [Internal Network]
 
 **Thank you for attending!**
 
-Contact: INTLUG
 Next Session: February 7th, 2026
 
 ---
+<!-- header: Linux Networking | Extra -->
 
 # Bonus: Quick Reference Card
 
