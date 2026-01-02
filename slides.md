@@ -106,55 +106,57 @@ We meet **every first Saturday** of the month
 ---
 
 <style scoped>
-section {
-  display: flex;
-  flex-direction: column;
-}
-.content-wrapper {
+.columns {
   display: grid;
-  grid-template-columns: 70% 28%;
-  gap: 2%;
-  align-items: start;
-  margin-bottom: 1em;
+  grid-template-columns: 700px 1fr;
+  gap: 2em;
+}
+.columns > .right {
+  border-left: 1px solid #ccc;
+  padding-left: 1rem;
+  text-align: center;
 }
 </style>
 
-# Why Networking Matters
+## Why Networking Matters
 
-<div class="content-wrapper">
+<div class="columns">
 <div>
 
 **Every Linux admin needs networking skills:**
 - Servers don't serve without a network
-- Troubleshooting 80% of issues involves "Can you ping it?"
-- Security depends on understanding network layers
+- Troubleshooting often starts with "Can you ping it?"
+- Security relies on understanding network layers
 - Cloud, containers, VMs - it's all networking underneath
 
 </div>
 <div>
 
-![wordcloud](images/wordcloud.png)
+![w:300](images/wordcloud.png)
 
 </div>
 </div>
 
 **Today's Goal:**
-Untangle the Gordian Knot of Linux networking! This is an introductory session - **questions are welcome at any time.**
+Simplify Linux networking concepts! This is an intro session - **ask questions anytime.**
 
 ---
 
 <style scoped>
-.agenda-columns {
+.columns {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 3%;
-  margin-top: 1em;
+  gap: 2em;
+}
+.columns > .right {
+  border-left: 1px solid #ccc;
+  padding-left: 1rem;
 }
 </style>
 
 ## Agenda
 
-<div class="agenda-columns">
+<div class="columns">
 <div>
 
 1. **Networking Foundations**
@@ -171,7 +173,7 @@ Untangle the Gordian Knot of Linux networking! This is an introductory session -
    - Performance Monitoring
 
 </div>
-<div>
+<div class="right">
 
 4. **Firewall Management**
    - firewalld Basics
@@ -189,9 +191,7 @@ Untangle the Gordian Knot of Linux networking! This is an introductory session -
 
 ---
 
-<!-- 
- _class: lead invert 
--->
+<!-- _class: lead invert -->
 
 # Part 1: Networking Foundations
 
@@ -1221,10 +1221,10 @@ sudo systemctl enable --now dnsmasq
 ---
 <!-- _class: lead invert -->
 
-# Part 7: Lab Environment
+# Part 7: Demo Environment
 
 ---
-<!-- header: Linux Networking | Lab Environment -->
+<!-- _header: Linux Networking | Demo Environment -->
 ## Lab Overview
 
 **VM Setup:**
@@ -1243,9 +1243,9 @@ Internet → [Gateway VM] →   [Internal Network]
 ```
 
 ---
-<!-- _header: Linux Networking | Lab Environment -->
+<!-- _header: Linux Networking | Demo Environment -->
 
-## Hands-On Exercises
+## Demo ideas - what do you want to see?
 
 <style scoped>
 .columns {
@@ -1278,8 +1278,8 @@ Internet → [Gateway VM] →   [Internal Network]
 <div class="right">
 
 4. **Service Deployment**
-   - nginx setup & reverse proxy
-   - Load balancing
+   - nginx setup ~~& reverse proxy~~
+   - ~~Load balancing~~
 
 5. **Network Troubleshooting**
    - Connectivity diagnostics
@@ -1293,7 +1293,7 @@ Internet → [Gateway VM] →   [Internal Network]
 </div>
 
 ---
-<!-- _header: Linux Networking | Lab Environment -->
+<!-- _header: Linux Networking | Demo Environment -->
 
 # Key Takeaways
 
@@ -1305,7 +1305,7 @@ Internet → [Gateway VM] →   [Internal Network]
 6. **Security** should be considered at every layer
 
 ---
-<!-- _header: Linux Networking | Lab Environment -->
+<!-- _header: Linux Networking | Demo Environment -->
 
 # Resources & References
 
@@ -1342,12 +1342,27 @@ Internet → [Gateway VM] →   [Internal Network]
 - Fedora forums and mailing lists
 
 ---
+<style scoped>
+.bigger {
+    font-size: 50px;
+    text-align: center;
+}
+</style>
 
-# Questions?
+# Q & A
 
-**Thank you for attending!**
+## Thank you for attending!
 
-Next Session: February 7th, 2026
+Next Session: **February 7th, 2026**
+
+These slides and ansible playbooks to create the lab can be found here:
+
+<div class=bigger>
+
+https://github.com/intlug/networking.git
+
+</div>
+
 
 ---
 <!-- header: Linux Networking | Extra -->
