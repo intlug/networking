@@ -101,6 +101,7 @@
     rich_rule: 'rule family="ipv4" forward-port port="80" protocol="tcp" to-addr="0.0.0.0"'
     permanent: true
     state: enabled
+  when: false # Incorrect rule, blocks local port 80 access
 
 - name: Reload firewalld
   ansible.builtin.systemd:
