@@ -922,6 +922,12 @@ sudo firewall-cmd --get-services       # All available
 
 ---
 <!-- _header: 'Linux Networking | Essential Networking Tools '-->
+<style scope>
+p {
+  margin-top: .3em;   /* Adds space above the paragraph */
+  margin-bottom: .3em;/* Adds space below the paragraph */
+}
+</style>
 
 ## firewalld: Port Management
 
@@ -941,6 +947,8 @@ sudo firewall-cmd --permanent \
     --add-forward-port=port=80:proto=tcp:toport=8080
 sudo firewall-cmd --reload
 ```
+
+Note `--runtime-to-permanent` is another option to save the current rules
 
 ---
 <!-- _header: 'Linux Networking | Essential Networking Tools '-->
@@ -1114,27 +1122,6 @@ sudo firewall-cmd --reload
 ---
 <!-- _header: 'Linux Networking | Examples'-->
 
-## nginx: Reverse Proxy
-
-**Example configuration:**
-```nginx
-server {
-    listen 80;
-    server_name example.com;
-    
-    location / {
-        proxy_pass http://localhost:8080;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-    }
-}
-```
-
-**Use case:** Frontend for backend applications
-
----
-<!-- _header: 'Linux Networking | Examples'-->
-
 ## nginx: Load Balancing
 
 **Example configuration:**
@@ -1222,6 +1209,8 @@ sudo systemctl enable --now dnsmasq
 <!-- _class: lead invert -->
 
 # Part 7: Demo Environment
+
+Putting things to the test
 
 ---
 <!-- _header: Linux Networking | Demo Environment -->
