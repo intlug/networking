@@ -5,6 +5,7 @@ class: invert
 paginate: true
 header: 'Linux Networking - INTLUG'
 footer: 'January 2026'
+transition: fade 1s
 ---
 
 <style>
