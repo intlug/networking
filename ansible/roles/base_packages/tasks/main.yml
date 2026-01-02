@@ -26,6 +26,10 @@
       - tmux
       - net-tools
       - bind-utils
+      - nmtui
+      - lsof
+      - unzip
+      - zip
     state: present
   register: base_packages_utils_result
   failed_when:
