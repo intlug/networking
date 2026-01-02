@@ -274,6 +274,9 @@ OSI Layer              TCP/IP Layer
 - **Layer 3 (Remote)**: IP packets use IP addresses
   - Different subnets: Through router/gateway | Router changes frame, preserves IP
 
+- **Socket Pair**: To send/recieve messages, you need MAC and PORT on both sides. 
+IP allows routing (layer 3).
+
 - **Encapsulation**: Application → TCP/UDP → IP → Ethernet
   - Each layer adds header with addressing info
 
@@ -300,6 +303,7 @@ OSI Layer              TCP/IP Layer
 ---
 
 <!-- _header: 'Linux Networking | Networking Foundations '-->
+<!-- _footer: 'January 2026 - https://github.com/intlug/networking.git - All image-sources from Wikipedia (commons)' -->
 
 ## Ethernet: The Winner of LAN Standards
 
@@ -310,9 +314,11 @@ OSI Layer              TCP/IP Layer
 - **Why Ethernet Won:** Simplicity + Cost + Speed + Flexibility
   - No complex token passing | Cheaper NICs/switches | Easy scaling (10Mb→100Gb)
 
-- **Why Token Ring Lost:** Expensive MAUs | Complex mechanism | Hard to troubleshoot | IBM proprietary vs open Ethernet
+- **Why Token Ring Lost:** Expensive MAUs (hub/switch) | Complex mechanism | Hard to troubleshoot | IBM proprietary vs open Ethernet
 
 - **Modern Ethernet**: Switched (not shared), full duplex, no collisions
+
+![h:120 Token Ring hermaphroditic connector with two large plastic housings and metal pins](images/token-ring-hermaphroditic-connector.png) ![h:120 Token Ring network topology diagram showing computers connected in a circular ring pattern with MAU hub in center](images/token-ring-network.png) ![h:120 BNC T-connector made of metal with three connection points for coaxial cable](images/bnc-connector.png) | ![h:120 Traditional Ethernet bus topology showing computers connected linearly along a single coaxial cable backbone](images/ethernet-network.png) ![h:120 Modern switched Ethernet network with star topology showing computers connected through a central switch device](images/ethernet-modern-network.png)
 
 ---
 
@@ -424,6 +430,8 @@ section.ascii pre {
 └────────────────────────────────────────────────────┘
 ```
 
+Subnet defined as /24 (255.255.255.0) on both hosts
+
 **Same subnet = Direct communication** | ARP resolves IP→MAC | Switch uses MACs | **No router**
 
 ---
@@ -525,7 +533,7 @@ Broadcast: 10.0.255.255  |  Hosts/Net: 65534
 
 <!-- _header: 'Linux Networking | Networking Foundations '-->
 
-## The OSI Model & Linux Networking
+## The OSI Model &#x2192; Linux Networking
 
 | Layer | Name | Linux Components | Purpose |
 |-------|------|------------------|---------|
@@ -552,7 +560,7 @@ Broadcast: 10.0.255.255  |  Hosts/Net: 65534
 - D-Bus based architecture for modern IPC
 - Dynamic configuration (changes apply instantly)
 - Integrated with systemd and PolKit
-- Supports WiFi, VPN, bridges, and more
+- Supports WiFi, VPN, bridges, bonds and more
 
 **Advantages over legacy methods:**
 - No manual `/etc/sysconfig/network-scripts/` editing
@@ -578,6 +586,8 @@ ip addr show eth0
 nmcli connection add con-name "MyConnection" type ethernet \
     ifname eth0 ipv4.addresses 192.168.1.100/24 \
     ipv4.gateway 192.168.1.1 ipv4.dns "8.8.8.8" ipv4.method manual
+
+nmcli connection add con-name "MyDHCP" type ethernet ifname eth0
 ```
 
 ---
@@ -596,6 +606,9 @@ nmcli connection modify MyConnection ipv4.addresses 192.168.1.150/24
 
 # Delete connection
 nmcli connection delete MyConnection
+
+# Create connection from (unused) device
+nmcli device connect eth1
 ```
 
 ---
@@ -854,7 +867,19 @@ sudo tcpdump -i eth0 -w capture.pcap
 - Frontend to nftables/iptables | Zones define trust levels
 - Services = predefined rule sets
 
-**Remember:** `iptables` made sysadmins cry. `firewalld` is easier!
+**Remember:** `iptables` made sysadmins cry. `nftables` makes them run. `firewalld` is easier!
+
+---
+<!-- _header: 'Linux Networking | Essential Networking Tools'-->
+
+## NetworkFlow Tables (nftables) - the replacement of iptables
+
+![networkflow](images/nft-flow.png)
+
+Sourced from [A Netfilter/Nftables Fastpath](https://thermalcircle.de/doku.php?id=blog:linux:flowtables_1_a_netfilter_nftables_fastpath) - CC BY-SA 4.0 license
+
+### Firewalld-cmd covers the complexity of `nft`
+(unless you're really going crazy and need very rare features enabled)
 
 ---
 <!-- _header: 'Linux Networking | Essential Networking Tools '-->
