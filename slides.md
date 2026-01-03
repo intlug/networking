@@ -88,9 +88,9 @@ a {
 # Welcome to INTLUG!
 ## International Linux Users Group
 
-**Next Meeting:** January 3rd, 2026 @ 10:00 AM EST
+January 3rd, 2026
 
-We meet **every first Saturday** of the month
+We meet **every first Saturday** of the month - 10AM EST
 
 **Join Us:**
 - 📅 Events & Chat: https://heylo.group/international-linux-users-group
