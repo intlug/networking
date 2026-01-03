@@ -393,14 +393,14 @@ section.ascii pre {
                                             │
                  ┌──────────────────────────┘
                  │
-      ┌──────────▼─────────────────────────────────────┐
-      │       IP PACKET (Layer 3)                      │
-      ├──────────┬──────────┬──────────┬───────────────┤
-      │ Header   │ Src IP   │ Dst IP   │  Payload      │
-      │(20 bytes)│(4 bytes) │(4 bytes) │  (variable)   │
-      │          │192.168.1.│192.168.1.│               │
-      │          │    10    │    20    │               │
-      └──────────┴──────────┴──────────┴───────────────┘
+      ┌──────────▼───────────────────────────────────────────┐
+      │       IP PACKET (Layer 3)                            │
+      ├──────────┬─────────────┬─────────────┬───────────────┤
+      │ Header   │   Src IP    │   Dst IP    │  Payload      │
+      │(20 bytes)│  (4 bytes)  │  (4 bytes)  │  (variable)   │
+      │          │192.168.1.10 │192.168.1.20 │               │
+      │          │             │             │               │
+      └──────────┴─────────────┴─────────────┴───────────────┘
 ```
 **Layer 2 (Ethernet)**: MAC addresses (local) | **Layer 3 (IP)**: IP addresses (end-to-end)  
 **MAC changes hop-by-hop** | **IP stays constant** | **Both headers in every packet**
