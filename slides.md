@@ -1076,7 +1076,7 @@ ip route show
 # Should see routes for both networks
 
 # Test from internal client
-ping -c 4 8.8.8.8          # Should work via NAT
+ping -c 4 cisco.com          # Should work via NAT
 ```
 
 ---
@@ -1143,27 +1143,6 @@ sudo firewall-cmd --reload
 
 **Basic configuration:** `/etc/nginx/nginx.conf`
 **Web root:** `/usr/share/nginx/html/`
-
----
-<!-- _header: 'Linux Networking | Examples'-->
-
-## nginx: Load Balancing
-
-**Example configuration:**
-```nginx
-upstream backend {
-    server 10.10.10.2:8080;
-    server 10.10.10.3:8080;
-    server 10.10.10.4:8080;
-}
-
-server {
-    listen 80;
-    location / {
-        proxy_pass http://backend;
-    }
-}
-```
 
 ---
 <!-- _header: 'Linux Networking | Examples'-->
